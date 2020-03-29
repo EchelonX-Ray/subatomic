@@ -5,6 +5,7 @@
 // MouseMoveEvent
 // LeaveEvent
 // ExposeEvent
+// CloseEvent
 
 int main(int argc, char *argv[]) {
 	char *title = "Window Title";
@@ -26,6 +27,7 @@ int main(int argc, char *argv[]) {
 	window.event_handles[ExposeEvent] = (void*)&exposure_event;
 	window.width = 640;
 	window.height = 480;
+	window.bitmap = calloc(window.width * window.height, 4);
 	//window.ignore_next_ke = 0;
 	//window.ignore_key_repeat = 1;
 	create_window(&window);
@@ -36,9 +38,7 @@ int main(int argc, char *argv[]) {
 		event_handler(&window, &event);
 	}
 	
+	free(window.bitmap);
+	
 	return 100;
-	
-	sleep(5);
-	
-	return 0;
 }
