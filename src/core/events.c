@@ -24,3 +24,6 @@ void leave_window_event(int x, int y, XEvent* event, struct MTK_WinBase* window)
 	printf("Leave Event: x-%d", x);
 	printf(" y-%d\n", y);
 }
+int before_closing(struct MTK_WinBase* window, XEvent* event){
+	return 0;
+}

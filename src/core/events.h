@@ -9,5 +9,6 @@ void button_event(int state, unsigned int button, int x, int y, XEvent* event, s
 void key_event(int state, int keycode, XEvent* event, struct MTK_WinBase* window);
 void pointer_motion_event(int x, int y, XEvent* event, struct MTK_WinBase* window);
 void leave_window_event(int x, int y, XEvent* event, struct MTK_WinBase* window);
+int before_closing(struct MTK_WinBase* window, XEvent* event);
 
 #endif

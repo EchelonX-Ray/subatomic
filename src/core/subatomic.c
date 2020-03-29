@@ -25,6 +25,7 @@ int main(int argc, char *argv[]) {
 	window.event_handles[MouseMoveEvent] = (void*)&pointer_motion_event;
 	window.event_handles[LeaveEvent] = (void*)&leave_window_event;
 	window.event_handles[ExposeEvent] = (void*)&exposure_event;
+	window.event_handles[CloseEvent] = (void*)&before_closing;
 	window.width = 640;
 	window.height = 480;
 	window.bitmap = calloc(window.width * window.height, 4);

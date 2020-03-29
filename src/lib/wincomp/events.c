@@ -33,6 +33,7 @@ void cue_window_close(struct MTK_WinBase *window, XEvent *event) {
 	
 	int (*closing_func)(struct MTK_WinBase*, XEvent*);
 	if (window->event_handles[CloseEvent] != 0) {
+		closing_func = window->event_handles[CloseEvent];
 		abort_window_close = closing_func(window, event);
 	}
 	
@@ -70,27 +71,27 @@ void event_handler(struct MTK_WinBase *window, XEvent *event){
 		}
 		*/
 	}
-	if (event->type == KeyRelease) {
+	if (event->type == KeyRelease && window->event_handles[KeyEvent] != 0) {
 		key_func = window->event_handles[KeyEvent];
 		key_func(2, event->xkey.keycode, event, window);
 		return;
 	}
-	if (event->type == ButtonPress) {
+	if (event->type == ButtonPress && window->event_handles[MouseBtnEvent] != 0) {
 		mouse_btn_func = window->event_handles[MouseBtnEvent];
 		mouse_btn_func(1, event->xbutton.button, event->xbutton.x, event->xbutton.y, event, window);
 		return;
 	}
-	if (event->type == ButtonRelease) {
+	if (event->type == ButtonRelease && window->event_handles[MouseBtnEvent] != 0) {
 		mouse_btn_func = window->event_handles[MouseBtnEvent];
 		mouse_btn_func(2, event->xbutton.button, event->xbutton.x, event->xbutton.y, event, window);
 		return;
 	}
-	if (event->type == MotionNotify) {
+	if (event->type == MotionNotify && window->event_handles[MouseMoveEvent] != 0) {
 		mouse_move_func = window->event_handles[MouseMoveEvent];
 		mouse_move_func(event->xcrossing.x, event->xcrossing.y, event, window);
 		return;
 	}
-	if (event->type == LeaveNotify) {
+	if (event->type == LeaveNotify && window->event_handles[LeaveEvent] != 0) {
 		leave_func = window->event_handles[LeaveEvent];
 		leave_func(event->xbutton.x, event->xbutton.y, event, window);
 		return;
@@ -99,7 +100,6 @@ void event_handler(struct MTK_WinBase *window, XEvent *event){
 	if (event->type == ClientMessage) {
 		if (event->xclient.data.l[0] == window->wmDM) {
 			cue_window_close(window, event);
-			//close_x(window);
 		}
 	}
 	

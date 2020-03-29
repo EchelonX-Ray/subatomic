@@ -3,6 +3,7 @@
 
 //#include <unistd.h>
 #include "./../lib/wincomp/wincomp.h"
+#include "./../lib/wincomp/elements.h"
 #include "./events.h"
 //#include <X11/Xlib.h>
 //#include <X11/Xutil.h>
