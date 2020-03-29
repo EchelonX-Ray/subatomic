@@ -2,7 +2,7 @@
 
 CFLAGS="-pipe -O2 -flto -march=native"
 
-echo "Make build directory structure"
+echo "Create build directory structure"
 mkdir -p "./build"
 mkdir -p "./build/core"
 mkdir -p "./build/lib/toolbox"
@@ -19,7 +19,7 @@ echo "Compile: wincomp.c"
 gcc -c "./../src/lib/wincomp/wincomp.c" -o "./build/lib/wincomp/wincomp.obj" $CFLAGS &
 echo "Compile: wincomp/events.c"
 gcc -c "./../src/lib/wincomp/events.c" -o "./build/lib/wincomp/events.obj" $CFLAGS &
-echo "Compile: wincomp/events.c"
+echo "Compile: wincomp/drawing.c"
 gcc -c "./../src/lib/wincomp/drawing.c" -o "./build/lib/wincomp/drawing.obj" $CFLAGS &
 
 # Wait for compilation to finish
