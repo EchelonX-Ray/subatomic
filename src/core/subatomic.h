@@ -4,6 +4,7 @@
 //#include <unistd.h>
 #include "./../lib/wincomp/wincomp.h"
 #include "./../lib/wincomp/elements.h"
+#include "./../lib/wincomp/drawing.h"
 #include "./events.h"
 //#include <X11/Xlib.h>
 //#include <X11/Xutil.h>
@@ -13,5 +14,6 @@
 //#include <X11/Xatom.h>
 //#include <string.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 #endif

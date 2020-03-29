@@ -4,6 +4,7 @@
 //#include <X11/Xlib.h>
 #include <X11/Xutil.h>
 //#include <X11/Xos.h>
+#include <stdint.h>
 #include <stdio.h>
 
 //#include <X11/Xatom.h>
@@ -29,7 +30,7 @@ struct MTK_WinBase {
 	// Program Values
 	int width;
 	int height;
-	char *bitmap;
+	uint32_t *bitmap;
 	long events;
 	int loop_running;
 	
@@ -46,8 +47,8 @@ struct MTK_WinBase {
 	//struct MTK_CharBM **char_maps; // Array of Pointers to Font Map Arrays of lengths of 256.  Bit-0: Bold, Bit-1: Italic, Bit-2: Underline, Bit-3: Strike-through
 	//struct MTK_MenuBlock *menu_bar;
 	
-	int _internal_ignore_key_repeat;			//Flag checked in key_event function
-	int _internal_ignore_next_ke;			//Used as part of the ignore key repeat feature
+	int ignore_key_repeat;					// Set this to disable Key Repeat
+	int _internal_ignore_next_ke;			// Used as part of the ignore key repeat feature.  This is used internally.  It should not be touched by programs using this library.
 };
 
 void window_struct_init(struct MTK_WinBase *window);

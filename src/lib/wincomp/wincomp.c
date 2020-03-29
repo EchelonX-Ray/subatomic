@@ -2,6 +2,8 @@
 
 void window_struct_init(struct MTK_WinBase *window){
 	window->loop_running = 1;
+	window->ignore_key_repeat = 0;
+	window->_internal_ignore_next_ke = 0;
 	
 	unsigned int i = 0;
 	while (i < MTKEvent_Count) {

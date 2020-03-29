@@ -59,6 +59,13 @@ void event_handler(struct MTK_WinBase *window, XEvent *event){
 		return;
 	}
 	if (event->type == KeyPress) {
+		// Ignore key repeat if a key repeat was detected and
+		// ignore_key_repeat was set
+		if (window->_internal_ignore_next_ke == 1) {
+			window->_internal_ignore_next_ke = 0;
+			return;
+		}
+		
 		key_func = window->event_handles[KeyEvent];
 		key_func(1, event->xkey.keycode, event, window);
 		return;
@@ -72,6 +79,25 @@ void event_handler(struct MTK_WinBase *window, XEvent *event){
 		*/
 	}
 	if (event->type == KeyRelease && window->event_handles[KeyEvent] != 0) {
+		// If ignore key repeat set, check to see if this is a key repeat 
+		// If this is a key repeat, disable the next cued key event and 
+		// then return from this key event
+		if (window->ignore_key_repeat == 1) {
+			// This could be combined with the previous if statment using
+			// && logic.  But I decided against it just in case the compiler
+			// doesn't optimize away the 2nd condition.  I didn't want it to run 
+			// if ignore_key_repeat is not set.  It probably wouldn't hurt 
+			// anything, but if for no other reason than to improve preformance.
+			if (XEventsQueued(window->dis, QueuedAfterReading) > 0) {
+				XEvent nev;
+				XPeekEvent(window->dis, &nev);
+				if (nev.type == KeyPress && nev.xkey.time == event->xkey.time && nev.xkey.keycode == event->xkey.keycode) {
+					window->_internal_ignore_next_ke = 1;
+					return;
+				}
+			}
+		}
+		
 		key_func = window->event_handles[KeyEvent];
 		key_func(2, event->xkey.keycode, event, window);
 		return;

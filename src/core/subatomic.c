@@ -28,10 +28,12 @@ int main(int argc, char *argv[]) {
 	window.event_handles[CloseEvent] = (void*)&before_closing;
 	window.width = 640;
 	window.height = 480;
-	window.bitmap = calloc(window.width * window.height, 4);
-	//window.ignore_next_ke = 0;
-	//window.ignore_key_repeat = 1;
+	window.bitmap = calloc(window.width * window.height, sizeof(uint32_t));
+	window.ignore_key_repeat = 1;
 	create_window(&window);
+	
+	fill_rect(200, 200, 100, 50, 0x0000FF00, &window);
+	draw_bm(0, 0, 640, 480, &window);
 	
 	XEvent event;
 	while(window.loop_running == 1) {
