@@ -47,7 +47,7 @@ struct MTK_WinBase {
 	//struct MTK_CharBM **char_maps; // Array of Pointers to Font Map Arrays of lengths of 256.  Bit-0: Bold, Bit-1: Italic, Bit-2: Underline, Bit-3: Strike-through
 	//struct MTK_MenuBlock *menu_bar;
 	
-	int ignore_key_repeat;					// Set this to disable Key Repeat
+	int ignore_key_repeat;					// Set this to "1" disable Key Repeat
 	int _internal_ignore_next_ke;			// Used as part of the ignore key repeat feature.  This is used internally.  It should not be touched by programs using this library.
 };
 

@@ -5,6 +5,8 @@
 #include "./../lib/wincomp/wincomp.h"
 #include "./../lib/wincomp/elements.h"
 #include "./../lib/wincomp/drawing.h"
+#include "./../lib/wincomp/text.h"
+#include "./../lib/wincomp/font.h"
 #include "./events.h"
 //#include <X11/Xlib.h>
 //#include <X11/Xutil.h>

@@ -9,6 +9,9 @@
 
 int main(int argc, char *argv[]) {
 	char *title = "Window Title";
+	struct MTK_WinFontPack font_pack;
+	setup_font("/usr/share/fonts/dejavu/DejaVuSansMono.ttf", 25, &font_pack);
+	
 	struct MTK_WinBase window;
 	window_struct_init(&window);
 	
@@ -29,10 +32,19 @@ int main(int argc, char *argv[]) {
 	window.width = 640;
 	window.height = 480;
 	window.bitmap = calloc(window.width * window.height, sizeof(uint32_t));
-	window.ignore_key_repeat = 1;
+	window.ignore_key_repeat = 0; // Allow Key Repeat
 	create_window(&window);
 	
 	fill_rect(200, 200, 100, 50, 0x0000FF00, &window);
+	unsigned int x = 50;
+	printf("x: %d\n", x);
+	x += draw_char(x, 50, 'A', 0x00FFFFFF, font_pack.font_style, &window);
+	printf("x: %d\n", x);
+	x += draw_char(x, 50, 'B', 0x00FFFFFF, font_pack.font_style, &window);
+	printf("x: %d\n", x);
+	x += draw_char(x, 50, 'C', 0x00FFFFFF, font_pack.font_style, &window);
+	printf("x: %d\n", x);
+	fill_rect(50, 50, 1, 1, 0x00FF0000, &window);
 	draw_bm(0, 0, 640, 480, &window);
 	
 	XEvent event;
@@ -41,7 +53,8 @@ int main(int argc, char *argv[]) {
 		event_handler(&window, &event);
 	}
 	
+	free_font(&font_pack);
 	free(window.bitmap);
 	
-	return 100;
+	return 0;
 }
