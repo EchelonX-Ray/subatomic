@@ -18,6 +18,7 @@ long mtk_gem(int setting){
 	if (setting == ExposeEvent) {
 		return ExposureMask;
 	}
+	return 0;
 }
 
 void window_close(struct MTK_WinBase *window) {

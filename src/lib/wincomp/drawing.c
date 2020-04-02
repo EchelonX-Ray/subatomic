@@ -43,6 +43,7 @@ void fill_rect(unsigned int x, unsigned int y, unsigned int width, unsigned int 
 			
 			// Set the pixel
 			window->bitmap[pixel_y * window->width + pixel_x] = working_color;
+			
 			pixel_x++;
 		}
 		pixel_y++;

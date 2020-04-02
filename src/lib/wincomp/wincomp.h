@@ -18,6 +18,19 @@
 
 #define MTKEvent_Count 6
 
+#define MS_UP 0
+#define MS_DOWN 1
+
+struct MTK_WinMouseStateTracking {
+	struct MTK_WinElement **pixel_element_map;
+	struct MTK_WinElement *previous_mouse_element;
+	signed int previous_mouse_x;
+	signed int previous_mouse_y;
+	signed int mouse_down_x;
+	signed int mouse_down_y;
+	unsigned int mouse_state;
+};
+
 struct MTK_WinBase {
 	// Common GFX Values
 	Display *dis;
@@ -43,6 +56,9 @@ struct MTK_WinBase {
 	//void *redraw_event;
 	
 	void* event_handles[MTKEvent_Count];
+	
+	struct MTK_WinElement *root_element;
+	struct MTK_WinMouseStateTracking mouse_state;
 	
 	//struct MTK_CharBM **char_maps; // Array of Pointers to Font Map Arrays of lengths of 256.  Bit-0: Bold, Bit-1: Italic, Bit-2: Underline, Bit-3: Strike-through
 	//struct MTK_MenuBlock *menu_bar;

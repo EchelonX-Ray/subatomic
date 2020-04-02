@@ -1,8 +1,28 @@
 #include "./wincomp.h"
 
+/*
+struct MTK_WinMouseStateTracking {
+	struct MTK_WinElement **pixel_element_map;
+	struct MTK_WinElement *previous_mouse_element;
+	signed int previous_mouse_x;
+	signed int previous_mouse_y;
+	signed int mouse_down_x;
+	signed int mouse_down_y;
+	unsigned int mouse_state;
+};
+*/
+
 void window_struct_init(struct MTK_WinBase *window){
 	window->loop_running = 1;
 	window->ignore_key_repeat = 0;
+	window->mouse_state.pixel_element_map = 0;
+	window->mouse_state.previous_mouse_element = 0;
+	window->mouse_state.previous_mouse_x = 0;
+	window->mouse_state.previous_mouse_y = 0;
+	window->mouse_state.mouse_down_x = 0;
+	window->mouse_state.mouse_down_y = 0;
+	window->mouse_state.mouse_state = MS_UP;
+	window->root_element = 0;
 	window->_internal_ignore_next_ke = 0;
 	
 	unsigned int i = 0;
@@ -53,14 +73,14 @@ void create_window(struct MTK_WinBase *vals){
 	vals->wmDM = XInternAtom(vals->dis, "WM_DELETE_WINDOW", False);
 	XSetWMProtocols(vals->dis, vals->win, &(vals->wmDM), 1);
 	
-	XWindowAttributes ra;
-	XGetWindowAttributes(vals->dis, vals->root_win, &ra);
-	int wid = ra.width;
-	int hei = ra.height;
-	printf("Width: %d", wid);
-	printf(", ");
-	printf("Height: %d", hei);
-	printf("\n");
+	//XWindowAttributes ra;
+	//XGetWindowAttributes(vals->dis, vals->root_win, &ra);
+	//int wid = ra.width;
+	//int hei = ra.height;
+	//printf("Width: %d", wid);
+	//printf(", ");
+	//printf("Height: %d", hei);
+	//printf("\n");
 	
 	//void (*event_func)(void**) = event_loop;
 	//void (*close_func)(Display*, Window*, GC*, char*, void*) = close_x;

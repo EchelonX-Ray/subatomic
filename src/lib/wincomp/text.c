@@ -1,6 +1,6 @@
 #include "./text.h"
 
-unsigned int draw_char(unsigned int x, unsigned int y, char charactor, uint32_t color, struct MTK_WinFontMap *fontmap, struct MTK_WinBase *window){
+unsigned int draw_char(unsigned int x, unsigned int y, unsigned char charactor, uint32_t color, struct MTK_WinFontMap *fontmap, struct MTK_WinBase *window){
 	unsigned int i;
 	unsigned int j;
 	unsigned int alpha;

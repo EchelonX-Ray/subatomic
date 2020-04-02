@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="ASCII"?>
+<container>
+  <values>
+    <id>0</id>
+    <x>0</x>
+    <y>0</y>
+    <width>-1</width>
+    <height>-1</height>
+    <bgcolor>00000000</bgcolor>
+  </values>
+  <anchors>
+  </anchors>
+  
+  <button>
+    <values>
+      <id>1</id>
+      <x>10</x>
+      <y>10</y>
+      <width>50</width>
+      <height>20</height>
+      <bgcolor>00FFFFFF</bgcolor>
+      <fgcolor>00000000</fgcolor>
+      <text>Test Button</text>
+      
+      <event type="mousehover">
+        <bgcolor>000000FF</bgcolor>
+      </event>
+      <event type="mousedown">
+        <bgcolor>00FF0000</bgcolor>
+      </event>
+    </values>
+    <anchors>
+    </anchors>
+  </button>
+</container>
