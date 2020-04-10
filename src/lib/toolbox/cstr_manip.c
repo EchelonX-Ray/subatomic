@@ -1,5 +1,16 @@
 #include "./cstr_manip.h"
 
+void cmemcpy(const void* from, void* to, const unsigned int length){
+	const char* from_loc = from;
+	char* to_loc = to;
+	unsigned int i = 0;
+	while (i < length) {
+		to_loc[i] = from_loc[i];
+		i++;
+	}
+	return;
+}
+
 // Get the length of the cstring including the NULL terminator
 unsigned int cstrlen(const unsigned char *src) {
 	unsigned int i = 0;
@@ -50,8 +61,8 @@ void itoa(int32_t num, char* buf, int buf_len, int base) {
 		buf[1] = 0;
 	}else{
 		char tmpstr[32] = {[0 ... 31] = 0};
-		char i_then_length = 0;
-		char i_2 = 0;
+		unsigned char i_then_length = 0;
+		unsigned char i_2 = 0;
 		//i_then_length is now an index
 		//Append "-" character for negatives
 		if(num < 0){
@@ -63,9 +74,9 @@ void itoa(int32_t num, char* buf, int buf_len, int base) {
 		while(num > 0){
 			i_2 = num % base;
 			if(i_2 < 10){
-				tmpstr[i_then_length] = '0' + i_2;
+				tmpstr[(int)i_then_length] = '0' + i_2;
 			}else{
-				tmpstr[i_then_length] = '7' + i_2;
+				tmpstr[(int)i_then_length] = '7' + i_2;
 			}
 			num /= base;
 			i_then_length++;
@@ -74,13 +85,13 @@ void itoa(int32_t num, char* buf, int buf_len, int base) {
 		//Loop to fix character order
 		i_2 = 0;
 		while(i_2 < i_then_length && i_2 < buf_len){
-			buf[i_2] = tmpstr[i_then_length - i_2 - 1];
+			buf[(int)i_2] = tmpstr[(int)((i_then_length - i_2) - 1)];
 			i_2++;
 		}
 		if(i_2 < buf_len){
-			buf[i_2] = 0;
+			buf[(int)i_2] = 0;
 		}else{
-			buf[i_2 - 1] = 0;
+			buf[(int)(i_2 - 1)] = 0;
 		}
 	}
 	return;

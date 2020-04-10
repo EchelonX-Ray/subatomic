@@ -2,6 +2,13 @@
 #define _insertion_elements_h
 
 #include "./wincomp.h"
+#include "./elements/button.h"
+#include "./elements/container.h"
+#include "./elements/checkbox.h"
+#include "./elements/ml_textbox.h"
+#include "./elements/radiobutton.h"
+#include "./elements/tab.h"
+#include "./elements/textbox.h"
 
 #define EL_BUTTON 1
 #define EL_CHECKBOX 2
@@ -30,8 +37,8 @@ struct MTK_WinElement {
 	unsigned int id;
 	signed int x;
 	signed int y;
-	unsigned int width;
-	unsigned int height;
+	signed int width;
+	signed int height;
 	unsigned int mouse_state;
 	unsigned int type;
 	void* type_spec;
@@ -41,10 +48,10 @@ struct MTK_WinElement {
 	struct MTK_WinElement **children;
 	unsigned int child_count;
 	
-	signed int computed_x;
-	signed int computed_y;
-	signed int computed_width;
-	signed int computed_height;
+	signed int _internal_computed_xoffset;
+	signed int _internal_computed_yoffset;
+	signed int _internal_computed_width;
+	signed int _internal_computed_height;
 	
 	char *text;
 	uint32_t fgcolor;
@@ -58,7 +65,8 @@ struct MTK_WinElAnchor {
 	struct MTK_WinElement *relative_to;
 };
 
+void compute_element_internals(struct MTK_WinBase *window);
 void set_pixel_element_map(signed int x, signed int y, unsigned int width, unsigned int height, struct MTK_WinBase *window, struct MTK_WinElement *element);
-void draw_element(struct MTK_WinElement *element, struct MTK_WinBase *window, signed int x, signed int y, signed int computed_width);
+void draw_element(struct MTK_WinElement *element, struct MTK_WinBase *window, signed int x, signed int y);
 
 #endif

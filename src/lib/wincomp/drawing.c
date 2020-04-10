@@ -26,7 +26,7 @@ void fill_rect(unsigned int x, unsigned int y, unsigned int width, unsigned int 
 	// Draw the rectangle
 	while (pixel_y < height && pixel_y < window->height) {
 		pixel_x = x;
-		while (pixel_x < width && pixel_x < window->height) {
+		while (pixel_x < width && pixel_x < window->width) {
 			// Alpha Channel Blending
 			working_color = window->bitmap[pixel_y * window->width + pixel_x];
 			red   = 0xFF & (working_color >>  16);
@@ -62,7 +62,7 @@ void draw_bm(unsigned int x, unsigned int y, unsigned int width, unsigned int he
 	// Draw the rectangle
 	while (pixel_y < height && pixel_y < window->height) {
 		pixel_x = x;
-		while (pixel_x < width && pixel_x < window->height) {
+		while (pixel_x < width && pixel_x < window->width) {
 			XSetForeground(window->dis, window->gc, window->bitmap[pixel_y * window->width + pixel_x]);
 			XFillRectangle(window->dis, window->win, window->gc, pixel_x, pixel_y, 1, 1);
 			pixel_x++;

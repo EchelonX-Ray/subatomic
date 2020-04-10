@@ -3,7 +3,9 @@
 CFLAGS="-Wall -std=c99 -pipe -O2 -flto -march=native"
 
 echo "Create build directory structure"
-mkdir -p "./build"
+mkdir -p "/dev/shm/devel/subatomic/dev_build"
+chmod 700 "/dev/shm/devel"
+ln -s "/dev/shm/devel/subatomic/dev_build/" "./build"
 mkdir -p "./build/core"
 mkdir -p "./build/lib/toolbox"
 mkdir -p "./build/lib/wincomp"
@@ -58,8 +60,8 @@ echo "Compile: wincomp/text.c"
 gcc -c "./../src/lib/wincomp/text.c" -o "./build/lib/wincomp/text.obj" $CFLAGS &
 echo "Compile: wincomp/elements.c"
 gcc -c "./../src/lib/wincomp/elements.c" -o "./build/lib/wincomp/elements.obj" $CFLAGS &
-echo "Compile: wincomp/element_parsing.c"
-gcc -c "./../src/lib/wincomp/element_parsing.c" -o "./build/lib/wincomp/element_parsing.obj" $(xml2-config --cflags) $CFLAGS &
+#echo "Compile: wincomp/element_parsing.c"
+#gcc -c "./../src/lib/wincomp/element_parsing.c" -o "./build/lib/wincomp/element_parsing.obj" $(xml2-config --cflags) $CFLAGS &
 echo "Compile: wincomp/font.c"
 gcc -c "./../src/lib/wincomp/font.c" -o "./build/lib/wincomp/font.obj" $(freetype-config --cflags) $CFLAGS &
 
@@ -69,28 +71,33 @@ wait
 echo "Compilation: Complete"
 
 echo "Link: All Compiled Objects"
-gcc $CFLAGS -r -o "./build/subatomic.obj" \
+gcc $CFLAGS -r -o "./build/subatomic_p1.obj" \
   "./build/core/subatomic.obj" \
   "./build/core/events.obj" \
   "./build/lib/wincomp/wincomp.obj" \
   "./build/lib/wincomp/elements.obj" \
-  "./build/lib/wincomp/element_parsing.obj" \
   "./build/lib/wincomp/elements/ALL_Elements.obj" \
   "./build/lib/wincomp/events.obj" \
   "./build/lib/wincomp/drawing.obj" \
   "./build/lib/wincomp/text.obj" \
   "./build/lib/wincomp/font.obj"
+#  "./build/lib/wincomp/element_parsing.obj"
 
-echo "Link: Against X11 + FreeType and Produce Finished Executable ./subatomic.out"
+gcc $CFLAGS -r -o "./build/subatomic_p2.obj" \
+  "./build/lib/toolbox/cstr_manip.obj"
+
+echo "Link: Against X11 + FreeType + XML2 and Produce Finished Executable ./subatomic.out"
 gcc \
   -lX11 \
   $(freetype-config --libs) $(freetype-config --cflags) \
   $(xml2-config --cflags) $(xml2-config --libs) \
   $CFLAGS -o "./subatomic.out" \
-  "./build/subatomic.obj"
+  "./build/subatomic_p1.obj" \
+  "./build/subatomic_p2.obj"
 
 echo "Deleting Build Directory"
-rm -rf "./build"
+rm -rf "/dev/shm/devel"
+rm -f "./build"
 
 echo "Dev Build Finished"
 exit 0
