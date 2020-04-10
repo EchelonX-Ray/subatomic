@@ -1,4 +1,5 @@
 #include "./../../lib/wincomp/elements.h"
+#include <stdlib.h>
 
 /*
 struct MTK_WinElement {
@@ -34,16 +35,16 @@ struct MTK_WinElAnchor {
 };
 */
 
-	//#define EL_AC_XAXIS 1; // This Anchor is used to align on the X-Axis
-	//#define EL_AC_YAXIS 2; // This Anchor is used to align on the Y-Axis
-	//#define EL_AC_RELATIVE_LEFT 0; // This Anchor's x offset is relative to the left side of the element it is anchored to
-	//#define EL_AC_RELATIVE_RIGHT 4; // This Anchor's x offset is relative to the right side of the element it is anchored to
-	//#define EL_AC_RELATIVE_TOP 0; // This Anchor's y offset is relative to the top side of the element it is anchored to
-	//#define EL_AC_RELATIVE_BOTTOM 8; // This Anchor's y offset is relative to the bottom side of the element it is anchored to
-	//#define EL_AC_ELEMENT_LEFT 0; // This Anchor's x offset is relative from the left side of the element it is assigned to
-	//#define EL_AC_ELEMENT_RIGHT 16; // This Anchor's x offset is relative from the right side of the element it is assigned to
-	//#define EL_AC_ELEMENT_TOP 0; // This Anchor's y offset is relative from the top side of the element it is assigned to
-	//#define EL_AC_ELEMENT_BOTTOM 32; // This Anchor's y offset is relative from the bottom side of the element it is assigned to
+//#define EL_AC_XAXIS 1; // This Anchor is used to align on the X-Axis
+//#define EL_AC_YAXIS 2; // This Anchor is used to align on the Y-Axis
+//#define EL_AC_RELATIVE_LEFT 0; // This Anchor's x offset is relative to the left side of the element it is anchored to
+//#define EL_AC_RELATIVE_RIGHT 4; // This Anchor's x offset is relative to the right side of the element it is anchored to
+//#define EL_AC_RELATIVE_TOP 0; // This Anchor's y offset is relative to the top side of the element it is anchored to
+//#define EL_AC_RELATIVE_BOTTOM 8; // This Anchor's y offset is relative to the bottom side of the element it is anchored to
+//#define EL_AC_ELEMENT_LEFT 0; // This Anchor's x offset is relative from the left side of the element it is assigned to
+//#define EL_AC_ELEMENT_RIGHT 16; // This Anchor's x offset is relative from the right side of the element it is assigned to
+//#define EL_AC_ELEMENT_TOP 0; // This Anchor's y offset is relative from the top side of the element it is assigned to
+//#define EL_AC_ELEMENT_BOTTOM 32; // This Anchor's y offset is relative from the bottom side of the element it is assigned to
 
 void setup_main_win_elements(struct MTK_WinElement **element) {
 	// Setup Easy Pointer Reference
@@ -104,5 +105,31 @@ void setup_main_win_elements(struct MTK_WinElement **element) {
 	button_anchors->relative_to = root_cont;
 	button->anchors = button_anchors;
 	button->anchor_count = 1;
+	return;
+}
+
+void free_element_tree(struct MTK_WinElement *root_cont){
+	if (root_cont == 0) {
+		return;
+	}
+	unsigned int i = 0;
+	if (root_cont->children != 0) {
+		while (root_cont->child_count > 0) {
+			free_element_tree(root_cont->children[i]);
+			root_cont->child_count--;
+			i++;
+		}
+		free(root_cont->children);
+	}
+	if (root_cont->anchors != 0 && root_cont->anchor_count > 0) {
+		free(root_cont->anchors);
+	}
+	if (root_cont->type_spec != 0) {
+		free(root_cont->type_spec);
+	}
+	if (root_cont->text != 0) {
+		free(root_cont->text);
+	}
+	free(root_cont);
 	return;
 }

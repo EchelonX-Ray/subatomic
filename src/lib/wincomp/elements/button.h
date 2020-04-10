@@ -6,6 +6,6 @@
 struct EL_button_t {
 };
 
-void draw_button(struct MTK_WinElement *element, struct MTK_WinBase *window, signed int x, signed int y);
+void draw_button(struct MTK_WinElement *element, struct MTK_WinBase *window);
 
 #endif

@@ -662,37 +662,37 @@ void compute_element_internals(struct MTK_WinBase *window) {
 	return;
 }
 
-void draw_element(struct MTK_WinElement *element, struct MTK_WinBase *window, signed int x, signed int y) {
+void draw_element(struct MTK_WinElement *element, struct MTK_WinBase *window) {
 	// If this is the root element, go ahead and just flush the pixel element map
 	if (element->parent == 0) {
 		set_pixel_element_map(0, 0, window->width, window->height, window, 0);
 	}
 	
 	if (element->type == EL_CONTAINER) {
-		draw_container(element, window, x, y);
+		draw_container(element, window);
 	}
 	if (element->type == EL_BUTTON) {
-		draw_button(element, window, x, y);
+		draw_button(element, window);
 	}
 	if (element->type == EL_CHECKBOX) {
-		draw_checkbox(element, window, x, y);
+		draw_checkbox(element, window);
 	}
 	if (element->type == EL_ML_TEXTBOX) {
-		draw_ml_textbox(element, window, x, y);
+		draw_ml_textbox(element, window);
 	}
 	if (element->type == EL_RADIOBUTTON) {
-		draw_radiobutton(element, window, x, y);
+		draw_radiobutton(element, window);
 	}
 	if (element->type == EL_TAB) {
-		draw_tab(element, window, x, y);
+		draw_tab(element, window);
 	}
 	if (element->type == EL_TEXTBOX) {
-		draw_textbox(element, window, x, y);
+		draw_textbox(element, window);
 	}
 	
 	unsigned int i = 0;
 	while (i < element->child_count) {
-		draw_element(element->children[i], window, element->children[i]->_internal_computed_xoffset, element->children[i]->_internal_computed_yoffset);
+		draw_element(element->children[i], window);
 		i++;
 	}
 	return;

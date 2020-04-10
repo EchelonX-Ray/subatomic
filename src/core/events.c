@@ -41,7 +41,7 @@ void pointer_motion_event(int x, int y, XEvent* event, struct MTK_WinBase* windo
 	window->mouse_state.previous_mouse_x = x;
 	window->mouse_state.previous_mouse_y = y;
 	if (redraw_required == 1) {
-		draw_element(window->root_element, window, 0, 0);
+		draw_element(window->root_element, window);
 		draw_bm(0, 0, 640, 480, window);
 	}
 	return;
@@ -52,7 +52,7 @@ void leave_window_event(int x, int y, XEvent* event, struct MTK_WinBase* window)
 	if (previous_element != 0) {
 		if (previous_element->mouse_state != EL_MS_NORMAL) {
 			previous_element->mouse_state = EL_MS_NORMAL;
-			draw_element(window->root_element, window, 0, 0);
+			draw_element(window->root_element, window);
 			draw_bm(0, 0, 640, 480, window);
 		}
 		window->mouse_state.previous_mouse_element = 0;

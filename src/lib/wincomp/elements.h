@@ -67,6 +67,6 @@ struct MTK_WinElAnchor {
 
 void compute_element_internals(struct MTK_WinBase *window);
 void set_pixel_element_map(signed int x, signed int y, unsigned int width, unsigned int height, struct MTK_WinBase *window, struct MTK_WinElement *element);
-void draw_element(struct MTK_WinElement *element, struct MTK_WinBase *window, signed int x, signed int y);
+void draw_element(struct MTK_WinElement *element, struct MTK_WinBase *window);
 
 #endif

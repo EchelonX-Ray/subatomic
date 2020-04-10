@@ -1,6 +1,5 @@
 #include "./subatomic.h"
 #include "./win_setup/main_win.c"
-#include "./win_setup/freemem.c"
 
 int main(int argc, char *argv[]) {
 	struct MTK_WinFontPack font_pack;
@@ -31,7 +30,7 @@ int main(int argc, char *argv[]) {
 	create_window(&window);
 	
 	compute_element_internals(&window);
-	draw_element(root_cont, &window, 0, 0);
+	draw_element(root_cont, &window);
 	draw_bm(0, 0, 640, 480, &window);
 	
 	XEvent event;
