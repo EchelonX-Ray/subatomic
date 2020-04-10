@@ -28,11 +28,9 @@ int main(int argc, char *argv[]) {
 	window.root_element = root_cont;
 	window.ignore_key_repeat = 0; // Allow Key Repeat
 	
-	compute_element_internals(&window);
-	exit(4);
-	
 	create_window(&window);
 	
+	compute_element_internals(&window);
 	draw_element(root_cont, &window, 0, 0);
 	draw_bm(0, 0, 640, 480, &window);
 	

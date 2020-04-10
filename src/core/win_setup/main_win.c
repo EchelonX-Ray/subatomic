@@ -100,7 +100,7 @@ void setup_main_win_elements(struct MTK_WinElement **element) {
 	struct MTK_WinElAnchor *button_anchors = calloc(1, sizeof(struct MTK_WinElAnchor));
 	button_anchors->x_offset = 10;
 	button_anchors->y_offset = 0;
-	button_anchors->flags = EL_AC_XAXIS | EL_AC_YAXIS | EL_AC_RELATIVE_RIGHT | EL_AC_RELATIVE_TOP | EL_AC_ELEMENT_LEFT | EL_AC_ELEMENT_TOP;
+	button_anchors->flags = EL_AC_XAXIS | EL_AC_YAXIS | EL_AC_RELATIVE_LEFT | EL_AC_RELATIVE_TOP | EL_AC_ELEMENT_LEFT | EL_AC_ELEMENT_TOP;
 	button_anchors->relative_to = root_cont;
 	button->anchors = button_anchors;
 	button->anchor_count = 1;
