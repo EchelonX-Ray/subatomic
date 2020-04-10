@@ -25,6 +25,8 @@ echo "Compile: elements/checkbox.c"
 gcc -c "./../src/lib/wincomp/elements/checkbox.c" -o "./build/lib/wincomp/elements/checkbox.obj" $CFLAGS &
 echo "Compile: elements/container.c"
 gcc -c "./../src/lib/wincomp/elements/container.c" -o "./build/lib/wincomp/elements/container.obj" $CFLAGS &
+echo "Compile: elements/file_text.c"
+gcc -c "./../src/lib/wincomp/elements/file_text.c" -o "./build/lib/wincomp/elements/file_text.obj" $CFLAGS &
 echo "Compile: elements/ml_textbox.c"
 gcc -c "./../src/lib/wincomp/elements/ml_textbox.c" -o "./build/lib/wincomp/elements/ml_textbox.obj" $CFLAGS &
 echo "Compile: elements/radiobutton.c"
@@ -40,6 +42,7 @@ gcc $CFLAGS -r -o "./build/lib/wincomp/elements/ALL_Elements.obj" \
   "./build/lib/wincomp/elements/button.obj" \
   "./build/lib/wincomp/elements/checkbox.obj" \
   "./build/lib/wincomp/elements/container.obj" \
+  "./build/lib/wincomp/elements/file_text.obj" \
   "./build/lib/wincomp/elements/ml_textbox.obj" \
   "./build/lib/wincomp/elements/radiobutton.obj" \
   "./build/lib/wincomp/elements/tab.obj" \
@@ -60,8 +63,6 @@ echo "Compile: wincomp/text.c"
 gcc -c "./../src/lib/wincomp/text.c" -o "./build/lib/wincomp/text.obj" $CFLAGS &
 echo "Compile: wincomp/elements.c"
 gcc -c "./../src/lib/wincomp/elements.c" -o "./build/lib/wincomp/elements.obj" $CFLAGS &
-#echo "Compile: wincomp/element_parsing.c"
-#gcc -c "./../src/lib/wincomp/element_parsing.c" -o "./build/lib/wincomp/element_parsing.obj" $(xml2-config --cflags) $CFLAGS &
 echo "Compile: wincomp/font.c"
 gcc -c "./../src/lib/wincomp/font.c" -o "./build/lib/wincomp/font.obj" $(freetype-config --cflags) $CFLAGS &
 
@@ -81,7 +82,6 @@ gcc $CFLAGS -r -o "./build/subatomic_p1.obj" \
   "./build/lib/wincomp/drawing.obj" \
   "./build/lib/wincomp/text.obj" \
   "./build/lib/wincomp/font.obj"
-#  "./build/lib/wincomp/element_parsing.obj"
 
 gcc $CFLAGS -r -o "./build/subatomic_p2.obj" \
   "./build/lib/toolbox/cstr_manip.obj"
@@ -90,7 +90,6 @@ echo "Link: Against X11 + FreeType + XML2 and Produce Finished Executable ./suba
 gcc \
   -lX11 \
   $(freetype-config --libs) $(freetype-config --cflags) \
-  $(xml2-config --cflags) $(xml2-config --libs) \
   $CFLAGS -o "./subatomic.out" \
   "./build/subatomic_p1.obj" \
   "./build/subatomic_p2.obj"

@@ -1,5 +1,17 @@
 #include "./cstr_manip.h"
 
+// Set all bytes to the value of "value", starting at the location "to", for the length of "length"
+void cmemset(void* to, const unsigned char value, const unsigned int length){
+	unsigned char* to_loc = to;
+	unsigned int i = 0;
+	while (i < length) {
+		to_loc[i] = value;
+		i++;
+	}
+	return;
+}
+
+// Copy memory, one byte at a time, from one location to another, for a given length in bytes
 void cmemcpy(const void* from, void* to, const unsigned int length){
 	const char* from_loc = from;
 	char* to_loc = to;

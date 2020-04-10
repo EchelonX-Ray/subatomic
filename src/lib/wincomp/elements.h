@@ -13,10 +13,11 @@
 #define EL_BUTTON 1
 #define EL_CHECKBOX 2
 #define EL_CONTAINER 3
-#define EL_ML_TEXTBOX 4
-#define EL_RADIOBUTTON 5
-#define EL_TAB 6
-#define EL_TEXTBOX 7
+#define EL_FILE_TEXT 4
+#define EL_ML_TEXTBOX 5
+#define EL_RADIOBUTTON 6
+#define EL_TAB 7
+#define EL_TEXTBOX 8
 
 #define EL_MS_NORMAL 0
 #define EL_MS_HOVER 1

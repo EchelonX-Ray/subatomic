@@ -4,6 +4,7 @@
 
 #include <stdint.h>
 
+void cmemset(void* to, const unsigned char value, const unsigned int length);
 void cmemcpy(const void* from, void* to, const unsigned int length);
 unsigned int cstrlen(const unsigned char *src);
 unsigned int cstrcpy(const unsigned char *src, unsigned char *dest);
