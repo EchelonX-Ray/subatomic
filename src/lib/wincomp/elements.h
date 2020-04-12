@@ -36,8 +36,6 @@
 
 struct MTK_WinElement {
 	unsigned int id;
-	signed int x;
-	signed int y;
 	signed int width;
 	signed int height;
 	unsigned int mouse_state;
@@ -54,9 +52,9 @@ struct MTK_WinElement {
 	signed int _internal_computed_width;
 	signed int _internal_computed_height;
 	
-	char *text;
-	uint32_t fgcolor;
-	uint32_t bgcolor;
+	//char *text;
+	//uint32_t fgcolor;
+	//uint32_t bgcolor;
 };
 
 struct MTK_WinElAnchor {

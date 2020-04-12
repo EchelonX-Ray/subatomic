@@ -4,6 +4,7 @@
 #include "./wincomp.h"
 #include <stdint.h>
 
+void draw_rect(unsigned int x, unsigned int y, unsigned int width, unsigned int height, unsigned int thickness, uint32_t color, struct MTK_WinBase *window);
 void fill_rect(unsigned int x, unsigned int y, unsigned int width, unsigned int height, uint32_t color, struct MTK_WinBase *window);
 void draw_bm(unsigned int x, unsigned int y, unsigned int width, unsigned int height, struct MTK_WinBase *window);
 

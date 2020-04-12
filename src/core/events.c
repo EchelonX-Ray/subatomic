@@ -19,6 +19,10 @@ void key_event(int state, int keycode, XEvent* event, struct MTK_WinBase* window
 	}
 }
 void pointer_motion_event(int x, int y, XEvent* event, struct MTK_WinBase* window){
+	if (x < 0 || x >= window->width || y < 0 || y >= window->height) {
+		return;
+	}
+	
 	struct MTK_WinElement *element;
 	struct MTK_WinElement *previous_element;
 	unsigned int redraw_required = 0;

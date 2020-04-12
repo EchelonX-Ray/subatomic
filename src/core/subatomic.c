@@ -6,7 +6,7 @@ int main(int argc, char *argv[]) {
 	setup_font("/usr/share/fonts/dejavu/DejaVuSansMono.ttf", 25, &font_pack);
 	
 	struct MTK_WinElement *root_cont = calloc(1, sizeof(struct MTK_WinElement));
-	setup_main_win_elements(&root_cont);
+	setup_main_win_elements(&root_cont, &font_pack);
 	
 	struct MTK_WinBase window;
 	window_struct_init(&window);
@@ -32,12 +32,17 @@ int main(int argc, char *argv[]) {
 	compute_element_internals(&window);
 	draw_element(root_cont, &window);
 	draw_bm(0, 0, 640, 480, &window);
-	
+		
 	XEvent event;
 	while(window.loop_running == 1) {
 		XNextEvent(window.dis, &event);
 		event_handler(&window, &event);
 	}
+	
+	//TODO: Clean Window Exit
+	//XDestroySubwindows(window.dis, window.win); -- Causes Errors, need to do more research
+	//XDestroyWindow(window.dis, window.win); -- Causes Errors, need to do more research
+	//XCloseDisplay(window.dis); -- Causes Errors, need to do more research
 	
 	free(window.mouse_state.pixel_element_map);
 	free(window.bitmap);
