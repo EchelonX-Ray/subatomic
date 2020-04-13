@@ -14,9 +14,12 @@ mkdir -p "./build/lib/wincomp/elements"
 # Complile the core program
 echo "Compile: subatomic.c"
 gcc -c "./../src/core/subatomic.c" -o "./build/core/subatomic.obj" $CFLAGS &
+wait
+echo "Compile: core/pthreading.c"
+gcc -c "./../src/core/pthreading.c" -o "./build/core/pthreading.obj" $CFLAGS &
+wait
 echo "Compile: core/events.c"
 gcc -c "./../src/core/events.c" -o "./build/core/events.obj" $CFLAGS &
-wait
 
 # Compile the window elements
 echo "Compile: elements/button.c"
@@ -35,18 +38,6 @@ echo "Compile: elements/tab.c"
 gcc -c "./../src/lib/wincomp/elements/tab.c" -o "./build/lib/wincomp/elements/tab.obj" $CFLAGS &
 echo "Compile: elements/textbox.c"
 gcc -c "./../src/lib/wincomp/elements/textbox.c" -o "./build/lib/wincomp/elements/textbox.obj" $CFLAGS &
-wait
-# Link together the element object files
-echo "Link: Element Objects"
-gcc $CFLAGS -r -o "./build/lib/wincomp/elements/ALL_Elements.obj" \
-  "./build/lib/wincomp/elements/button.obj" \
-  "./build/lib/wincomp/elements/checkbox.obj" \
-  "./build/lib/wincomp/elements/container.obj" \
-  "./build/lib/wincomp/elements/file_text.obj" \
-  "./build/lib/wincomp/elements/ml_textbox.obj" \
-  "./build/lib/wincomp/elements/radiobutton.obj" \
-  "./build/lib/wincomp/elements/tab.obj" \
-  "./build/lib/wincomp/elements/textbox.obj"
 
 # Compile the toolbox
 echo "Compile cstr_manip.c"
@@ -71,24 +62,40 @@ echo "Waiting for compilation to finish."
 wait
 echo "Compilation: Complete"
 
+# Link together the element object files
+echo "Link: Element Objects"
+gcc $CFLAGS -r -o "./build/lib/wincomp/elements/ALL_Elements.obj" \
+  "./build/lib/wincomp/elements/button.obj" \
+  "./build/lib/wincomp/elements/checkbox.obj" \
+  "./build/lib/wincomp/elements/container.obj" \
+  "./build/lib/wincomp/elements/file_text.obj" \
+  "./build/lib/wincomp/elements/ml_textbox.obj" \
+  "./build/lib/wincomp/elements/radiobutton.obj" \
+  "./build/lib/wincomp/elements/tab.obj" \
+  "./build/lib/wincomp/elements/textbox.obj"
+
 echo "Link: All Compiled Objects"
-gcc $CFLAGS -r -o "./build/subatomic_p1.obj" \
+gcc $CFLAGS -r -o "./build/subatomic_p2.obj" \
   "./build/core/subatomic.obj" \
   "./build/core/events.obj" \
+  "./build/core/pthreading.obj" \
+  "./build/lib/toolbox/cstr_manip.obj" &
+
+wait
+gcc $CFLAGS -r -o "./build/subatomic_p1.obj" \
   "./build/lib/wincomp/wincomp.obj" \
   "./build/lib/wincomp/elements.obj" \
   "./build/lib/wincomp/elements/ALL_Elements.obj" \
   "./build/lib/wincomp/events.obj" \
   "./build/lib/wincomp/drawing.obj" \
   "./build/lib/wincomp/text.obj" \
-  "./build/lib/wincomp/font.obj"
+  "./build/lib/wincomp/font.obj" &
 
-gcc $CFLAGS -r -o "./build/subatomic_p2.obj" \
-  "./build/lib/toolbox/cstr_manip.obj"
-
+wait
 echo "Link: Against X11 + FreeType + XML2 and Produce Finished Executable ./subatomic.out"
 gcc \
   -lX11 \
+  -lpthread \
   $(freetype-config --libs) $(freetype-config --cflags) \
   $CFLAGS -o "./subatomic.out" \
   "./build/subatomic_p1.obj" \

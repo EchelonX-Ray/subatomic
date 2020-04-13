@@ -74,16 +74,45 @@ void setup_main_win_elements(struct MTK_WinElement **element, struct MTK_WinFont
 	button->type_spec = calloc(1, sizeof(struct EL_button_t));
 	root_cont_child_list[0] = button;
 	root_cont_child_list[1] = textbox;
+	
+	/*
+	struct EL_textbox_t {
+		uint32_t bg_color;
+		uint32_t text_color;
+		uint32_t def_text_color;
+		uint32_t border_color;
+		char *text;
+		char *def_text;
+		struct MTK_WinFontMap *fontmap;
+	};
+	*/
+	struct EL_textbox_t *textbox__type_spec;
+	textbox__type_spec = textbox->type_spec;
+	textbox__type_spec->bg_color = 0x00FFFFFF;
+	textbox__type_spec->text_color = 0x00000000;
+	textbox__type_spec->def_text_color = 0x66000000;
+	textbox__type_spec->border_color = 0x00FF0000;
+	textbox__type_spec->text = "";
+	textbox__type_spec->def_text = "Default Text";
+	textbox__type_spec->cursor_position = 0;
+	textbox__type_spec->fontmap = &(font_pack->font_style[0]);
+	
 	textbox->id = 1;
-	textbox->width = 0;
-	textbox->height = 0;
+	textbox->width = -1;
+	textbox->height = 50;
 	textbox->mouse_state = EL_MS_NORMAL;
 	textbox->type = EL_TEXTBOX;
 	textbox->parent = root_cont;
 	textbox->children = 0;
 	textbox->child_count = 0;
-	textbox->anchors = 0;
-	textbox->anchor_count = 0;
+	textbox->anchor_count = 1;
+	struct MTK_WinElAnchor *textbox_anchors = calloc(textbox->anchor_count, sizeof(struct MTK_WinElAnchor));
+	textbox_anchors[0].x_offset = 0;
+	textbox_anchors[0].y_offset = 100;
+	textbox_anchors[0].flags = EL_AC_XAXIS | EL_AC_YAXIS | EL_AC_RELATIVE_LEFT | EL_AC_RELATIVE_TOP | EL_AC_ELEMENT_LEFT | EL_AC_ELEMENT_TOP;
+	textbox_anchors[0].relative_to = root_cont;
+	textbox->anchors = textbox_anchors;
+	
 	/*
 	struct EL_button_t {
 		uint32_t color;
@@ -96,27 +125,19 @@ void setup_main_win_elements(struct MTK_WinElement **element, struct MTK_WinFont
 		char *text;
 		struct MTK_WinFontMap *fontmap;
 	};
-		type_spec_default.color = 0xAAFFFFFF;
-		type_spec_default.hover_color = 0x00FFFFFF;
-		type_spec_default.down_color = 0x0000FF00;
-		type_spec_default.text_color = 0x00000000;
-		type_spec_default.text_hover_color = 0x000000FF;
-		type_spec_default.text_down_color = 0x00000000;
-		type_spec_default.border_color = 0x00FF0000;
-		type_spec_default.text = "Default Text";
-		type_spec_default.fontmap = 0;
 	*/
 	struct EL_button_t *button__type_spec;
 	button__type_spec = button->type_spec;
-	button__type_spec->color = 0xAAFFFFFF;
-	button__type_spec->hover_color = 0x00FFFFFF;
-	button__type_spec->down_color = 0x0000FF00;
+	button__type_spec->bg_color = 0xAAFFFFFF;
+	button__type_spec->bg_hover_color = 0x00FFFFFF;
+	button__type_spec->bg_down_color = 0x0000FF00;
 	button__type_spec->text_color = 0x00000000;
 	button__type_spec->text_hover_color = 0x000000FF;
 	button__type_spec->text_down_color = 0x00000000;
 	button__type_spec->border_color = 0x00FF0000;
 	button__type_spec->text = "Button Text";
 	button__type_spec->fontmap = &(font_pack->font_style[0]);
+	
 	button->id = 2;
 	button->width = 300;
 	button->height = 75;
@@ -126,10 +147,10 @@ void setup_main_win_elements(struct MTK_WinElement **element, struct MTK_WinFont
 	button->children = 0;
 	button->child_count = 0;
 	struct MTK_WinElAnchor *button_anchors = calloc(1, sizeof(struct MTK_WinElAnchor));
-	button_anchors->x_offset = 15;
-	button_anchors->y_offset = 5;
-	button_anchors->flags = EL_AC_XAXIS | EL_AC_YAXIS | EL_AC_RELATIVE_LEFT | EL_AC_RELATIVE_TOP | EL_AC_ELEMENT_LEFT | EL_AC_ELEMENT_TOP;
-	button_anchors->relative_to = root_cont;
+	button_anchors[0].x_offset = 15;
+	button_anchors[0].y_offset = 5;
+	button_anchors[0].flags = EL_AC_XAXIS | EL_AC_YAXIS | EL_AC_RELATIVE_LEFT | EL_AC_RELATIVE_TOP | EL_AC_ELEMENT_LEFT | EL_AC_ELEMENT_TOP;
+	button_anchors[0].relative_to = root_cont;
 	button->anchors = button_anchors;
 	button->anchor_count = 1;
 	return;

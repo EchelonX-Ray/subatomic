@@ -7,6 +7,12 @@ unsigned int get_char_width(char charactor, struct MTK_WinFontMap *fontmap) {
 	}
 	return (unsigned int)(fontmap->offmaps[(unsigned char)charactor].width);
 }
+unsigned int get_char_height(char charactor, struct MTK_WinFontMap *fontmap) {
+	if (fontmap == 0 || (unsigned char)charactor < MTK_FONT_ASCII_CHAR_MIN || (unsigned char)charactor > MTK_FONT_ASCII_CHAR_MAX) {
+		return 0;
+	}
+	return (unsigned int)(fontmap->offmaps[(unsigned char)charactor].height);
+}
 unsigned int get_text_width(char *string, struct MTK_WinFontMap *fontmap) {
 	unsigned int width = 0;
 	unsigned int i;

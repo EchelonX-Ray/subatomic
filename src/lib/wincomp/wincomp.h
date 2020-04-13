@@ -45,7 +45,7 @@ struct MTK_WinBase {
 	int height;
 	uint32_t *bitmap;
 	long events;
-	int loop_running;
+	volatile int loop_running;
 	
 	// Common Events
 	//void *closing_event;
@@ -58,7 +58,9 @@ struct MTK_WinBase {
 	void* event_handles[MTKEvent_Count];
 	
 	struct MTK_WinElement *root_element;
+	struct MTK_WinElement *focused_element;
 	struct MTK_WinMouseStateTracking mouse_state;
+	volatile unsigned char cursor_blink;
 	
 	//struct MTK_CharBM **char_maps; // Array of Pointers to Font Map Arrays of lengths of 256.  Bit-0: Bold, Bit-1: Italic, Bit-2: Underline, Bit-3: Strike-through
 	//struct MTK_MenuBlock *menu_bar;

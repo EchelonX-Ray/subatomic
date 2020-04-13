@@ -22,7 +22,9 @@ void window_struct_init(struct MTK_WinBase *window){
 	window->mouse_state.mouse_down_x = 0;
 	window->mouse_state.mouse_down_y = 0;
 	window->mouse_state.mouse_state = MS_UP;
+	window->cursor_blink = 0;
 	window->root_element = 0;
+	window->focused_element = 0;
 	window->_internal_ignore_next_ke = 0;
 	
 	unsigned int i = 0;

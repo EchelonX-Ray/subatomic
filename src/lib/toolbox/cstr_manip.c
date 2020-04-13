@@ -24,7 +24,7 @@ void cmemcpy(const void* from, void* to, const unsigned int length){
 }
 
 // Get the length of the cstring including the NULL terminator
-unsigned int cstrlen(const unsigned char *src) {
+unsigned int cstrlen(const char *src) {
 	unsigned int i = 0;
 	while(src[i] != 0) {
 		i++;
@@ -34,7 +34,7 @@ unsigned int cstrlen(const unsigned char *src) {
 
 // Copy a string from one buffer/pointer to another and return the length copied.  
 // The NULL terminator is copied and the retured length includes it.
-unsigned int cstrcpy(const unsigned char *src, unsigned char *dest) {
+unsigned int cstrcpy(const char *src, char *dest) {
 	unsigned int i = 0;
 	while (src[i] != 0) {
 		dest[i] = src[i];
@@ -45,7 +45,7 @@ unsigned int cstrcpy(const unsigned char *src, unsigned char *dest) {
 }
 
 // Compare 2 NULL terminated strings.  Returns 1 if equal, Returns 0 if not equal.
-unsigned int cstrcmp(const unsigned char *string1, const unsigned char *string2) {
+unsigned int cstrcmp(const char *string1, const char *string2) {
 	unsigned int i = 0;
 	while (string1[i] != 0 && string2[i] != 0) {
 		if (string1[i] != string2[i]) {
@@ -60,7 +60,7 @@ unsigned int cstrcmp(const unsigned char *string1, const unsigned char *string2)
 }
 
 // char* buf should be of at least length of 12 or will overflow (ONLY APPLICABLE TO BASE 10)
-void itoa(int32_t num, char* buf, int buf_len, int base) {
+void citoa(int32_t num, char* buf, int buf_len, int base) {
 	if(base > 16 || base < 2){
 		return;
 	}

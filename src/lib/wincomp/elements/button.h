@@ -4,9 +4,9 @@
 #include "./../elements.h"
 
 struct EL_button_t {
-	uint32_t color;
-	uint32_t hover_color;
-	uint32_t down_color;
+	uint32_t bg_color;
+	uint32_t bg_hover_color;
+	uint32_t bg_down_color;
 	uint32_t text_color;
 	uint32_t text_hover_color;
 	uint32_t text_down_color;
