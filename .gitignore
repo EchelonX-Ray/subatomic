@@ -1,2 +1,8 @@
+# Development testing program output
 devel/subatomic.out
+# Development build directory/symlink
 devel/build
+# A place for local development files
+devel/local/
+# A place for local files
+local/

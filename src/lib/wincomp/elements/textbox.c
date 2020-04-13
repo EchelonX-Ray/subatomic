@@ -51,17 +51,6 @@ void draw_textbox(struct MTK_WinElement *element, struct MTK_WinBase *window) {
 	y = element->_internal_computed_yoffset;
 	width = element->_internal_computed_width;
 	height = element->_internal_computed_height;
-	printf("Draw Textbox\n");
-	printf("text: %s\n", text);
-	printf("def_text: %s\n", def_text);
-	printf("x: 0x%08X\n", bgcolor);
-	printf("y: 0x%08X\n", text_color);
-	printf("x: 0x%08X\n", def_text_color);
-	printf("y: 0x%08X\n", border_color);
-	printf("x: %d\n", x);
-	printf("y: %d\n", y);
-	printf("width: %d\n", width);
-	printf("height: %d\n", height);
 	
 	set_pixel_element_map(x, y, width, height, window, element);
 	fill_rect(x, y, width, height, bgcolor, window);
