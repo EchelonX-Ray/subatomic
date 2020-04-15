@@ -57,7 +57,7 @@ struct MTK_WinBase {
 	int height;
 	uint32_t *bitmap;
 	long events;
-	volatile int loop_running;
+	volatile unsigned int loop_running;
 	
 	void* event_handles[MTKEvent_Count];
 	

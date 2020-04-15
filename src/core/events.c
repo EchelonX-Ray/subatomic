@@ -1,9 +1,21 @@
 #include "./events.h"
 
 void exposure_event(XEvent* event, struct MTK_WinBase* window){
-	compute_element_internals(window);
+	XWindowAttributes window_attributes_return;
+	XGetWindowAttributes(window->dis, window->win, &window_attributes_return);
+	if (window->width != window_attributes_return.width || window->height != window_attributes_return.height || window->loop_running == 2) {
+		window->width = window_attributes_return.width;
+		window->height = window_attributes_return.height;
+		free(window->bitmap);
+		free(window->mouse_state.pixel_element_map);
+		window->bitmap = calloc(window->width * window->height, sizeof(uint32_t));
+		window->mouse_state.pixel_element_map = calloc(window->width * window->height, sizeof(struct MTK_WinElement**));
+		compute_element_internals(window);
+		window->loop_running = 1;
+	}
 	draw_element(window->root_element, window);
 	draw_bm(0, 0, window->width, window->height, window);
+	return;
 }
 void button_event(int state, unsigned int button, int x, int y, XEvent* event, struct MTK_WinBase* window){
 	//printf("Button Event: State-%d", state);

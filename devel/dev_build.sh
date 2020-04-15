@@ -36,7 +36,7 @@ echo "Compile: elements/textbox.c"
 gcc -c "./../src/lib/wincomp/elements/textbox.c" -o "./build/lib/wincomp/elements/textbox.obj" $CFLAGS &
 
 # Compile the toolbox
-echo "Compile cstr_manip.c"
+echo "Compile: cstr_manip.c"
 gcc -c "./../src/lib/toolbox/cstr_manip.c" -o "./build/lib/toolbox/cstr_manip.obj" $CFLAGS &
 
 # Compile the base library components

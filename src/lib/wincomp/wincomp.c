@@ -13,7 +13,7 @@ struct MTK_WinMouseStateTracking {
 */
 
 void window_struct_init(struct MTK_WinBase *window){
-	window->loop_running = 1;
+	window->loop_running = 2;
 	window->ignore_key_repeat = 0;
 	window->mouse_state.pixel_element_map = 0;
 	window->mouse_state.previous_mouse_element = 0;

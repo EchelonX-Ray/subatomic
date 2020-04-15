@@ -60,7 +60,7 @@ int main(int argc, char *argv[]) {
 	pthread_create(window.thread.thread, 0, blink_the_cursor_LOOP, &window);
 	
 	XEvent event;
-	while(window.loop_running == 1) {
+	while(window.loop_running > 0) {
 		pthread_mutex_unlock(window.thread.lock);
 		poll_ret = poll(fds, 2, 1000);
 		pthread_mutex_lock(window.thread.lock);
