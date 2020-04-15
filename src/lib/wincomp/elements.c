@@ -1,7 +1,45 @@
 #include "./elements.h"
-#include <stdlib.h>
-
 #include "./../toolbox/cstr_manip.h"
+#include <stdlib.h>
+#include <unistd.h>
+
+void reset_the_cursor(struct MTK_WinBase *window){
+	pthread_cancel(*(window->thread.thread));
+	pthread_join(*(window->thread.thread), 0);
+	window->cursor_blink = 1;
+	pthread_create(window->thread.thread, 0, blink_the_cursor_LOOP, window);
+	return;
+}
+
+void* blink_the_cursor_LOOP(void* param_ptr){
+	struct MTK_WinBase *window;
+	pthread_mutex_t *lock;
+	unsigned int millisec_increment;
+	int fd;
+	int write_ret;
+	struct timespec req;
+	window = (struct MTK_WinBase*)param_ptr;
+	lock = window->thread.lock;
+	fd = window->thread.fd;
+	millisec_increment = window->thread.millisec_increment;
+	
+	req.tv_sec = millisec_increment / 1000;
+	req.tv_nsec = (millisec_increment % 1000) * 1000;
+	
+	nanosleep(&req, 0); // nanosleep is a pthread deferred cancellation point per the manual pthreads(7).  This thread may be cancelled during the sleep.
+	pthread_mutex_lock(lock);
+	if (window->cursor_blink == 1) {
+		window->cursor_blink = 0;
+	} else {
+		window->cursor_blink = 1;
+	}
+	write_ret = write(fd, "\x01", 1);
+	if (write_ret != 1) {
+		window->loop_running = 0;
+	}
+	pthread_mutex_unlock(lock);
+	return 0;
+}
 
 void set_pixel_element_map(signed int x, signed int y, unsigned int width, unsigned int height, struct MTK_WinBase *window, struct MTK_WinElement *element){
 	int i = x;

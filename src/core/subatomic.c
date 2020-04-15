@@ -1,6 +1,9 @@
 #include "./subatomic.h"
+
+#include <poll.h>
+#include <unistd.h>
+
 #include "./win_setup/main_win.c"
-#include "./pthreading.h"
 
 int main(int argc, char *argv[]) {
 	struct MTK_WinFontPack font_pack;
@@ -8,7 +11,6 @@ int main(int argc, char *argv[]) {
 	
 	struct MTK_WinElement *root_cont = calloc(1, sizeof(struct MTK_WinElement));
 	setup_main_win_elements(&root_cont, &font_pack);
-	XInitThreads();
 	
 	struct MTK_WinBase window;
 	window_struct_init(&window);
@@ -28,38 +30,78 @@ int main(int argc, char *argv[]) {
 	window.mouse_state.pixel_element_map = calloc(window.width * window.height, sizeof(struct MTK_WinElement**));
 	window.root_element = root_cont;
 	window.ignore_key_repeat = 0; // Allow Key Repeat
+	window.focused_element = root_cont->children[1];
 	
-	pthread_t threads[1];
-	struct MTK_Thread_Param thread_param[1];
-	thread_param[0].lock = &(thread_param[0].lock_val);
-	pthread_mutex_init(thread_param[0].lock, NULL);
-	thread_param[0].window = &window;
-	
-	pthread_create(threads + 0, 0, thread0_entry_blink_cursor, thread_param + 0);
+	compute_element_internals(&window);
 	
 	create_window(&window);
 	
-	pthread_mutex_lock(thread_param[0].lock);
-	compute_element_internals(&window);
-	draw_element(root_cont, &window);
-	draw_bm(0, 0, 640, 480, &window);
-	pthread_mutex_unlock(thread_param[0].lock);
-		
+	int pipefd_pair[2];
+	if(pipe(pipefd_pair) != 0){
+		return -1;
+	}
+	pthread_t threads[1];
+	pthread_mutex_t thread_lock[1];
+	window.thread.thread = threads + 0;
+	window.thread.lock = thread_lock + 0;
+	window.thread.fd = pipefd_pair[1];
+	window.thread.millisec_increment = 1000;
+	pthread_mutex_init(window.thread.lock, NULL);
+	pthread_mutex_lock(window.thread.lock);
+	
+	char charbuf;
+	struct pollfd fds[2];
+	fds[0].fd = window.fd;
+	fds[0].events = POLLIN;
+	fds[1].fd = pipefd_pair[0];
+	fds[1].events = POLLIN;
+	int poll_ret;
+	
+	pthread_create(window.thread.thread, 0, blink_the_cursor_LOOP, &window);
+	
 	XEvent event;
 	while(window.loop_running == 1) {
-		XNextEvent(window.dis, &event);
-		pthread_mutex_lock(thread_param[0].lock);
-		event_handler(&window, &event);
-		pthread_mutex_unlock(thread_param[0].lock);
+		pthread_mutex_unlock(window.thread.lock);
+		poll_ret = poll(fds, 2, 1000);
+		pthread_mutex_lock(window.thread.lock);
+		if (poll_ret < 0) {
+			window.loop_running = 0;
+		} else if(poll_ret > 0) {
+			if ((fds[0].revents & POLLIN) > 0) {
+				if (XPending(window.dis) > 0) {
+					XNextEvent(window.dis, &event);
+					event_handler(&window, &event);
+				}
+			}
+			if ((fds[1].revents & POLLIN) > 0) {
+				charbuf = 0;
+				if(read(fds[1].fd, &charbuf, 1) == 1) {
+					if (charbuf == 1) {
+						draw_element(window.root_element, &window);
+						draw_bm(0, 0, window.width, window.height, &window);
+						pthread_cancel(*(window.thread.thread));
+						pthread_join(*(window.thread.thread), 0);
+						pthread_create(window.thread.thread, 0, blink_the_cursor_LOOP, &window);
+					}
+				}
+			}
+		}
 	}
 	
-	//TODO: Clean Window Exit
-	//XDestroySubwindows(window.dis, window.win); -- Causes Errors, need to do more research
-	//XDestroyWindow(window.dis, window.win); -- Causes Errors, need to do more research
-	//XCloseDisplay(window.dis); -- Causes Errors, need to do more research
+	pthread_mutex_unlock(window.thread.lock);
+	pthread_cancel(*(window.thread.thread));
+	pthread_join(*(window.thread.thread), 0);
 	
-	pthread_cancel(threads[0]);
-	pthread_join(threads[0], 0);
+	//TODO: Clean Window Exit
+	//XUnmapWindow(window.dis, window.win);
+	//XDestroySubwindows(window.dis, window.win); // -- Causes Errors, need to do more research
+	//XDestroyWindow(window.dis, window.win); // -- Causes Errors, need to do more research
+	//XCloseDisplay(window.dis); // -- Causes Errors, need to do more research
+	close(window.fd);
+	
+	close(window.thread.fd);
+	close(fds[1].fd);
+	close(fds[0].fd);
 	
 	free(window.mouse_state.pixel_element_map);
 	free(window.bitmap);

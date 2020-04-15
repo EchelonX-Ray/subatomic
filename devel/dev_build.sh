@@ -14,10 +14,6 @@ mkdir -p "./build/lib/wincomp/elements"
 # Complile the core program
 echo "Compile: subatomic.c"
 gcc -c "./../src/core/subatomic.c" -o "./build/core/subatomic.obj" $CFLAGS &
-wait
-echo "Compile: core/pthreading.c"
-gcc -c "./../src/core/pthreading.c" -o "./build/core/pthreading.obj" $CFLAGS &
-wait
 echo "Compile: core/events.c"
 gcc -c "./../src/core/events.c" -o "./build/core/events.obj" $CFLAGS &
 
@@ -78,7 +74,6 @@ echo "Link: All Compiled Objects"
 gcc $CFLAGS -r -o "./build/subatomic_p2.obj" \
   "./build/core/subatomic.obj" \
   "./build/core/events.obj" \
-  "./build/core/pthreading.obj" \
   "./build/lib/toolbox/cstr_manip.obj" &
 
 wait

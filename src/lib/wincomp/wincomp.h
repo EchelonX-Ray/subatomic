@@ -1,6 +1,8 @@
 #ifndef _insertion_lib_wincomp_wincomp_h
 #define _insertion_lib_wincomp_wincomp_h
 
+#define _POSIX_C_SOURCE 199506L
+#include <pthread.h>
 //#include <X11/Xlib.h>
 #include <X11/Xutil.h>
 //#include <X11/Xos.h>
@@ -30,6 +32,15 @@ struct MTK_WinMouseStateTracking {
 	signed int mouse_down_y;
 	unsigned int mouse_state;
 };
+struct MTK_WinThreadReturn {
+};
+struct MTK_WinThreadParam {
+	pthread_t *thread;
+	pthread_mutex_t *lock;
+	int fd;
+	unsigned int millisec_increment;
+	struct MTK_WinThreadReturn ret_val;
+};
 
 struct MTK_WinBase {
 	// Common GFX Values
@@ -39,6 +50,7 @@ struct MTK_WinBase {
 	GC gc;
 	Atom wmDM;
 	char *title;
+	int fd;
 	
 	// Program Values
 	int width;
@@ -47,20 +59,13 @@ struct MTK_WinBase {
 	long events;
 	volatile int loop_running;
 	
-	// Common Events
-	//void *closing_event;
-	//void *closed_event;
-	//void *key_event;
-	//void *mouse_event;
-	//void *window_event;
-	//void *redraw_event;
-	
 	void* event_handles[MTKEvent_Count];
 	
 	struct MTK_WinElement *root_element;
 	struct MTK_WinElement *focused_element;
 	struct MTK_WinMouseStateTracking mouse_state;
 	volatile unsigned char cursor_blink;
+	struct MTK_WinThreadParam thread;
 	
 	//struct MTK_CharBM **char_maps; // Array of Pointers to Font Map Arrays of lengths of 256.  Bit-0: Bold, Bit-1: Italic, Bit-2: Underline, Bit-3: Strike-through
 	//struct MTK_MenuBlock *menu_bar;

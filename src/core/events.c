@@ -1,14 +1,18 @@
 #include "./events.h"
 
 void exposure_event(XEvent* event, struct MTK_WinBase* window){
-	//printf("Expose Event.\n");
+	compute_element_internals(window);
+	draw_element(window->root_element, window);
+	draw_bm(0, 0, window->width, window->height, window);
 }
 void button_event(int state, unsigned int button, int x, int y, XEvent* event, struct MTK_WinBase* window){
 	//printf("Button Event: State-%d", state);
 	//printf(" button-%d ", button);
 	//printf(" x-%d ", x);
 	//printf(" y-%d\n", y);
-	draw_bm(0, 0, 640, 480, window);
+	reset_the_cursor(window);
+	draw_element(window->root_element, window);
+	draw_bm(0, 0, window->width, window->height, window);
 }
 void key_event(int state, int keycode, XEvent* event, struct MTK_WinBase* window){
 	if (state == 2 && keycode == 9) {
