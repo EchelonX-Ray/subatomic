@@ -15,5 +15,6 @@ struct EL_textbox_t {
 };
 
 void draw_textbox(struct MTK_WinElement *element, struct MTK_WinBase *window);
+void textbox_event_key(int state, int keycode, XEvent* event, struct MTK_WinBase* window);
 
 #endif

@@ -25,14 +25,20 @@ void button_event(int state, unsigned int button, int x, int y, XEvent* event, s
 	reset_the_cursor(window);
 	draw_element(window->root_element, window);
 	draw_bm(0, 0, window->width, window->height, window);
+	return;
 }
 void key_event(int state, int keycode, XEvent* event, struct MTK_WinBase* window){
 	if (state == 2 && keycode == 9) {
 		cue_window_close(window, event);
-	} else {
-		//printf("Key Event: keycode-%d", keycode);
-		//printf(" state-%d\n", state);
+		return;
 	}
+	if (window->focused_element != 0 && state == 1) {
+		if (window->focused_element->type == EL_TEXTBOX) {
+			textbox_event_key(state, keycode, event, window);
+			return;
+		}
+	}
+	return;
 }
 void pointer_motion_event(int x, int y, XEvent* event, struct MTK_WinBase* window){
 	if (x < 0 || x >= window->width || y < 0 || y >= window->height) {

@@ -90,3 +90,77 @@ void draw_textbox(struct MTK_WinElement *element, struct MTK_WinBase *window) {
 	}
 	return;
 }
+
+void textbox_event_key(int state, int keycode, XEvent* event, struct MTK_WinBase* window) {
+	KeySym keysym;
+	KeySym keysym_num;
+	unsigned int num_mask;
+	KeySym keysym_lower;
+	KeySym keysym_upper;
+	keysym = XkbKeycodeToKeysym(window->dis, keycode, 0, event->xkey.state & ShiftMask);
+	num_mask = 0;
+	num_mask |= event->xkey.state & ShiftMask;
+	if ((event->xkey.state & Mod2Mask) > 0) {
+		num_mask ^= ShiftMask;
+	}
+	keysym_num = XkbKeycodeToKeysym(window->dis, keycode, 0, num_mask);
+	char payload[2];
+	payload[1] = 0;
+	struct EL_textbox_t *textbox_type_spec_ptr;
+	textbox_type_spec_ptr = (struct EL_textbox_t*)window->focused_element->type_spec;
+	if (keysym == XK_BackSpace) {
+		if (textbox_type_spec_ptr->cursor_position > 0) {
+			cdelstr(&(textbox_type_spec_ptr->text), textbox_type_spec_ptr->cursor_position, -1);
+			textbox_type_spec_ptr->cursor_position--;
+		}
+		reset_the_cursor(window);
+		draw_element(window->root_element, window);
+		draw_bm(0, 0, window->width, window->height, window);
+	}
+	if (keysym == XK_Delete) {
+		cdelstr(&(textbox_type_spec_ptr->text), textbox_type_spec_ptr->cursor_position, 1);
+		reset_the_cursor(window);
+		draw_element(window->root_element, window);
+		draw_bm(0, 0, window->width, window->height, window);
+	}
+	if (keysym == XK_Left) {
+		if (textbox_type_spec_ptr->cursor_position > 0) {
+			textbox_type_spec_ptr->cursor_position--;
+		}
+		reset_the_cursor(window);
+		draw_element(window->root_element, window);
+		draw_bm(0, 0, window->width, window->height, window);
+	}
+	if (keysym == XK_Right) {
+		if (textbox_type_spec_ptr->cursor_position + 1 < cstrlen(textbox_type_spec_ptr->text)) {
+			textbox_type_spec_ptr->cursor_position++;
+		}
+		reset_the_cursor(window);
+		draw_element(window->root_element, window);
+		draw_bm(0, 0, window->width, window->height, window);
+	}
+	if ((event->xkey.state & LockMask) > 0) {
+		XConvertCase(keysym, &keysym_lower, &keysym_upper);
+		if ((event->xkey.state & ShiftMask) > 0) {
+			keysym = keysym_lower;
+		} else {
+			keysym = keysym_upper;
+		}
+	}
+	if (keysym >= 0x20 && keysym < 0x7F) {
+		payload[0] = keysym;
+		cinsstr(payload, &(textbox_type_spec_ptr->text), textbox_type_spec_ptr->cursor_position);
+		textbox_type_spec_ptr->cursor_position++;
+		reset_the_cursor(window);
+		draw_element(window->root_element, window);
+		draw_bm(0, 0, window->width, window->height, window);
+	} else if((keysym_num >= 0xffaa && keysym_num <= 0xffb9) || keysym_num == 0xffbd) {
+		payload[0] = keysym_num - 0xff80;
+		cinsstr(payload, &(textbox_type_spec_ptr->text), textbox_type_spec_ptr->cursor_position);
+		textbox_type_spec_ptr->cursor_position++;
+		reset_the_cursor(window);
+		draw_element(window->root_element, window);
+		draw_bm(0, 0, window->width, window->height, window);
+	}
+	return;
+}

@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
 	window.bitmap = calloc(window.width * window.height, sizeof(uint32_t));
 	window.mouse_state.pixel_element_map = calloc(window.width * window.height, sizeof(struct MTK_WinElement**));
 	window.root_element = root_cont;
-	window.ignore_key_repeat = 0; // Allow Key Repeat
+	window.ignore_key_repeat = 0; // Ignore Key Repeat?
 	window.focused_element = root_cont->children[1];
 	
 	// Compute the element geometry
@@ -80,7 +80,8 @@ int main(int argc, char *argv[]) {
 			window.loop_running = 0;
 		} else if(poll_ret > 0) { // Pipe Notification Received
 			if ((fds[0].revents & POLLIN) > 0) { // Xlib Pipe Notification Received
-				if (XPending(window.dis) > 0) {
+				XFlush(window.dis);
+				while (XEventsQueued(window.dis, QueuedAlready) > 0) {
 					XNextEvent(window.dis, &event);
 					event_handler(&window, &event);
 				}

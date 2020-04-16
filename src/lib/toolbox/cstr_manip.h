@@ -4,6 +4,8 @@
 
 #include <stdint.h>
 
+void cdelstr(char **heap_buffer_ptr, signed int offset, signed int length);
+void cinsstr(const char *payload, char **heap_buffer_ptr, signed int offset);
 void cmemset(void* to, const unsigned char value, const unsigned int length);
 void cmemcpy(const void* from, void* to, const unsigned int length);
 unsigned int cstrlen(const char *src);

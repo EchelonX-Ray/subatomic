@@ -92,7 +92,7 @@ void setup_main_win_elements(struct MTK_WinElement **element, struct MTK_WinFont
 	textbox__type_spec->text_color = 0x00000000;
 	textbox__type_spec->def_text_color = 0x66000000;
 	textbox__type_spec->border_color = 0x00FF0000;
-	textbox__type_spec->text = "";
+	textbox__type_spec->text = calloc(1, sizeof(char));
 	textbox__type_spec->def_text = "Default Text";
 	textbox__type_spec->cursor_position = 0;
 	textbox__type_spec->fontmap = &(font_pack->font_style[0]);
@@ -173,6 +173,13 @@ void free_element_tree(struct MTK_WinElement *root_cont){
 		free(root_cont->anchors);
 	}
 	if (root_cont->type_spec != 0) {
+		if (root_cont->type == EL_TEXTBOX) {
+			struct EL_textbox_t *textbox_t;
+			textbox_t = (struct EL_textbox_t*)root_cont->type_spec;
+			if (textbox_t->text != 0) {
+				free(textbox_t->text);
+			}
+		}
 		free(root_cont->type_spec);
 	}
 	free(root_cont);
