@@ -7,11 +7,11 @@ void reset_the_cursor(struct MTK_WinBase *window){
 	pthread_cancel(*(window->thread.thread));
 	pthread_join(*(window->thread.thread), 0);
 	window->cursor_blink = 1;
-	pthread_create(window->thread.thread, 0, blink_the_cursor_LOOP, window);
+	pthread_create(window->thread.thread, 0, blink_the_cursor, window);
 	return;
 }
 
-void* blink_the_cursor_LOOP(void* param_ptr){
+void* blink_the_cursor(void* param_ptr){
 	struct MTK_WinBase *window;
 	pthread_mutex_t *lock;
 	unsigned int millisec_increment;
@@ -331,6 +331,7 @@ void find_y_chains(struct MTK_WinElement *element, struct MTK_WinElement *from, 
 }
 
 // Print DEBUGGING Info - Remove on production release
+/*
 void print_chainlist(struct MTK_WinEl_ChainList *chainlist) {
 	unsigned int i;
 	unsigned int j;
@@ -356,6 +357,7 @@ void print_chainlist(struct MTK_WinEl_ChainList *chainlist) {
 	}
 	return;
 }
+*/
 
 void parse_chain_width(struct MTK_WinEl_Chain *chain, unsigned int parent_width) {
 	struct MTK_WinElement *element;
@@ -670,11 +672,6 @@ void compute_element_internals(struct MTK_WinBase *window) {
 		}
 		j--;
 	}
-	
-	//printf("_XChainlist_\n");
-	//print_chainlist(&x_chainlist);
-	//printf("_YChainlist_\n");
-	//print_chainlist(&y_chainlist);
 	
 	// Free the memory
 	i = 0;
