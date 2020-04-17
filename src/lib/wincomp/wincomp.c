@@ -1,6 +1,6 @@
 #include "./wincomp.h"
 #include <X11/cursorfont.h>
-#include <X11/Xcursor/Xcursor.h>
+//#include <X11/Xcursor/Xcursor.h>
 #include <unistd.h>
 
 /*
