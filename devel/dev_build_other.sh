@@ -62,9 +62,9 @@ echo "Compilation: Complete"
 # Link together the element object files
 echo "Link: All & Against X11 + FreeType + XML2 and Produce Finished Executable ./subatomic.out"
 gcc \
-  -lX11 \
+  $(pkg-config --libs x11) \
   -lpthread \
-  -lfreetype $(pkg-config --cflags freetype2) \
+  $(pkg-config --libs -cflags freetype2) \
   $CFLAGS -o "./subatomic.out" \
   "./build/lib/wincomp/wincomp.obj" \
   "./build/lib/wincomp/elements.obj" \
