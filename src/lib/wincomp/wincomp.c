@@ -48,15 +48,16 @@ void create_window(struct MTK_WinBase *vals){
 	
 	//Atom wmDeleteMessage;
 	
-	/* get the colors black and white (see section for details) */
 	unsigned long black;
 	unsigned long white;
 	
 	//char running = 1;
+	vals->dis = XOpenDisplay((char *)0);
+	vals->root_win = DefaultRootWindow(vals->dis);
 	
 	screen = DefaultScreen(vals->dis);
-	black = BlackPixel(vals->dis, screen),	/* get color black */
-	white = WhitePixel(vals->dis, screen);  /* get color white */
+	black = BlackPixel(vals->dis, screen);
+	white = WhitePixel(vals->dis, screen);
 	
 	vals->win = XCreateSimpleWindow(vals->dis, vals->root_win, 0, 0, vals->width, vals->height, 5, white, black);
 	
@@ -118,10 +119,11 @@ void create_window(struct MTK_WinBase *vals){
 }
 
 void free_window(struct MTK_WinBase *window){
-	printf("HereA\n");
+	XUnmapWindow(window->dis, window->win);
+	XDestroyWindow(window->dis, window->win);
+	XCloseDisplay(window->dis);
+	XFree(window->gc);
 	//XFreeCursor(window->dis, window->_internal_cursor);
-	printf("HereB\n");
 	close(window->fd);
-	printf("HereC\n");
 	return;
 }

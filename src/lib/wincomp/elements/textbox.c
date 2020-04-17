@@ -108,7 +108,7 @@ void textbox_event_move(int x, int y, XEvent* event, struct MTK_WinBase* window)
 void textbox_event_button(int state, unsigned int button, int x, int y, XEvent* event, struct MTK_WinBase* window) {
 	return;
 }
-void textbox_event_key(int state, int keycode, XEvent* event, struct MTK_WinBase* window) {
+void textbox_event_key(int state, int keycode, XEvent* event, struct MTK_WinElement* element, struct MTK_WinBase* window) {
 	KeySym keysym;
 	KeySym keysym_num;
 	unsigned int num_mask;
@@ -131,30 +131,54 @@ void textbox_event_key(int state, int keycode, XEvent* event, struct MTK_WinBase
 			textbox_type_spec_ptr->cursor_position--;
 		}
 		reset_the_cursor(window);
-		draw_element(window->root_element, window);
-		draw_bm(0, 0, window->width, window->height, window);
+		draw_element(element, window);
+		draw_bm(	element->_internal_computed_xoffset, \
+					element->_internal_computed_yoffset, \
+					element->_internal_computed_width, \
+					element->_internal_computed_height, \
+					window	);
+		//draw_element(window->root_element, window);
+		//draw_bm(0, 0, window->width, window->height, window);
 	}
 	if (keysym == XK_Delete) {
 		cdelstr(&(textbox_type_spec_ptr->text), textbox_type_spec_ptr->cursor_position, 1);
 		reset_the_cursor(window);
-		draw_element(window->root_element, window);
-		draw_bm(0, 0, window->width, window->height, window);
+		draw_element(element, window);
+		draw_bm(	element->_internal_computed_xoffset, \
+					element->_internal_computed_yoffset, \
+					element->_internal_computed_width, \
+					element->_internal_computed_height, \
+					window	);
+		//draw_element(window->root_element, window);
+		//draw_bm(0, 0, window->width, window->height, window);
 	}
 	if (keysym == XK_Left) {
 		if (textbox_type_spec_ptr->cursor_position > 0) {
 			textbox_type_spec_ptr->cursor_position--;
 		}
 		reset_the_cursor(window);
-		draw_element(window->root_element, window);
-		draw_bm(0, 0, window->width, window->height, window);
+		draw_element(element, window);
+		draw_bm(	element->_internal_computed_xoffset, \
+					element->_internal_computed_yoffset, \
+					element->_internal_computed_width, \
+					element->_internal_computed_height, \
+					window	);
+		//draw_element(window->root_element, window);
+		//draw_bm(0, 0, window->width, window->height, window);
 	}
 	if (keysym == XK_Right) {
 		if (textbox_type_spec_ptr->cursor_position + 1 < cstrlen(textbox_type_spec_ptr->text)) {
 			textbox_type_spec_ptr->cursor_position++;
 		}
 		reset_the_cursor(window);
-		draw_element(window->root_element, window);
-		draw_bm(0, 0, window->width, window->height, window);
+		draw_element(element, window);
+		draw_bm(	element->_internal_computed_xoffset, \
+					element->_internal_computed_yoffset, \
+					element->_internal_computed_width, \
+					element->_internal_computed_height, \
+					window	);
+		//draw_element(window->root_element, window);
+		//draw_bm(0, 0, window->width, window->height, window);
 	}
 	if ((event->xkey.state & LockMask) > 0) {
 		XConvertCase(keysym, &keysym_lower, &keysym_upper);
@@ -169,15 +193,27 @@ void textbox_event_key(int state, int keycode, XEvent* event, struct MTK_WinBase
 		cinsstr(payload, &(textbox_type_spec_ptr->text), textbox_type_spec_ptr->cursor_position);
 		textbox_type_spec_ptr->cursor_position++;
 		reset_the_cursor(window);
-		draw_element(window->root_element, window);
-		draw_bm(0, 0, window->width, window->height, window);
+		draw_element(element, window);
+		draw_bm(	element->_internal_computed_xoffset, \
+					element->_internal_computed_yoffset, \
+					element->_internal_computed_width, \
+					element->_internal_computed_height, \
+					window	);
+		//draw_element(window->root_element, window);
+		//draw_bm(0, 0, window->width, window->height, window);
 	} else if((keysym_num >= 0xffaa && keysym_num <= 0xffb9) || keysym_num == 0xffbd) {
 		payload[0] = keysym_num - 0xff80;
 		cinsstr(payload, &(textbox_type_spec_ptr->text), textbox_type_spec_ptr->cursor_position);
 		textbox_type_spec_ptr->cursor_position++;
 		reset_the_cursor(window);
-		draw_element(window->root_element, window);
-		draw_bm(0, 0, window->width, window->height, window);
+		draw_element(element, window);
+		draw_bm(	element->_internal_computed_xoffset, \
+					element->_internal_computed_yoffset, \
+					element->_internal_computed_width, \
+					element->_internal_computed_height, \
+					window	);
+		//draw_element(window->root_element, window);
+		//draw_bm(0, 0, window->width, window->height, window);
 	}
 	return;
 }

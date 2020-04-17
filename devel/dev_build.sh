@@ -88,13 +88,12 @@ gcc $CFLAGS -r -o "./build/subatomic_p1.obj" \
 
 wait
 echo "Link: Against X11 + FreeType + XML2 and Produce Finished Executable ./subatomic.out"
-gcc \
-  -lX11 \
-  -lpthread \
-  $(freetype-config --libs) $(freetype-config --cflags) \
-  $CFLAGS -o "./subatomic.out" \
+gcc $CFLAGS -o "./subatomic.out" \
   "./build/subatomic_p1.obj" \
-  "./build/subatomic_p2.obj"
+  "./build/subatomic_p2.obj" \
+  $(pkg-config --libs x11) \
+  $(pkg-config --libs --cflags freetype2) \
+  -lpthread
 
 echo "Deleting Build Directory"
 rm -rf "/dev/shm/devel"

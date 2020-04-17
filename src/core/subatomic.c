@@ -24,8 +24,6 @@ int main(int argc, char *argv[]) {
 	struct MTK_WinBase window; // Declare the window struct
 	window_struct_init(&window); // Initialize the window struct values
 	// Set the window values we need
-	window.dis = XOpenDisplay((char *)0);
-	window.root_win = DefaultRootWindow(window.dis);
 	window.title = "Sub-Atomic Editor";
 	window.events = mtk_gem(KeyEvent) | mtk_gem(MouseBtnEvent) | mtk_gem(MouseMoveEvent) | mtk_gem(LeaveEvent) | mtk_gem(ExposeEvent);
 	window.event_handles[KeyEvent] = (void*)&key_event;
@@ -100,8 +98,12 @@ int main(int argc, char *argv[]) {
 				charbuf = 0;
 				if(read(fds[1].fd, &charbuf, 1) == 1) {
 					if (charbuf == 1) {
-						draw_element(window.root_element, &window);
-						draw_bm(0, 0, window.width, window.height, &window);
+						draw_element(window.focused_element, &window);
+						draw_bm( window.focused_element->_internal_computed_xoffset, \
+									window.focused_element->_internal_computed_yoffset, \
+									window.focused_element->_internal_computed_width, \
+									window.focused_element->_internal_computed_height, \
+									&window	);
 						pthread_cancel(*(window.thread.thread));
 						pthread_join(*(window.thread.thread), 0);
 						pthread_create(window.thread.thread, 0, blink_the_cursor, &window);
@@ -116,18 +118,12 @@ int main(int argc, char *argv[]) {
 	pthread_cancel(*(window.thread.thread));
 	pthread_join(*(window.thread.thread), 0);
 	
-	//TODO: Clean Window Exit
-	//XUnmapWindow(window.dis, window.win);
-	//XDestroySubwindows(window.dis, window.win); // -- Causes Errors, need to do more research
-	//XDestroyWindow(window.dis, window.win); // -- Causes Errors, need to do more research
-	//XCloseDisplay(window.dis); // -- Causes Errors, need to do more research
-	
 	// Close the opened file descriptors
 	close(pipefd_pair[0]);
 	close(pipefd_pair[1]);
 	
 	// Free up allocated memory
-	//free_window(&window);
+	free_window(&window);
 	free(window.mouse_state.pixel_element_map);
 	free(window.bitmap);
 	free_element_tree(root_cont);

@@ -23,8 +23,14 @@ void button_event(int state, unsigned int button, int x, int y, XEvent* event, s
 	//printf(" x-%d ", x);
 	//printf(" y-%d\n", y);
 	reset_the_cursor(window);
-	draw_element(window->root_element, window);
-	draw_bm(0, 0, window->width, window->height, window);
+	draw_element(window->focused_element, window);
+	draw_bm(	window->focused_element->_internal_computed_xoffset, \
+				window->focused_element->_internal_computed_yoffset, \
+				window->focused_element->_internal_computed_width, \
+				window->focused_element->_internal_computed_height, \
+				window	);
+	//draw_element(window->root_element, window);
+	//draw_bm(0, 0, window->width, window->height, window);
 	return;
 }
 void key_event(int state, int keycode, XEvent* event, struct MTK_WinBase* window){
@@ -34,7 +40,7 @@ void key_event(int state, int keycode, XEvent* event, struct MTK_WinBase* window
 	}
 	if (window->focused_element != 0 && state == 1) {
 		if (window->focused_element->type == EL_TEXTBOX) {
-			textbox_event_key(state, keycode, event, window);
+			textbox_event_key(state, keycode, event, window->focused_element, window);
 			return;
 		}
 	}

@@ -2,7 +2,7 @@
 
 // KeyEvent MouseBtnEvent MouseMoveEvent LeaveEvent ExposeEvent
 // ExposureMask|ButtonPressMask|ButtonReleaseMask|KeyPressMask|KeyReleaseMask|PointerMotionMask|LeaveWindowMask
-long mtk_gem(int setting){
+long mtk_gem(int setting) {
 	if (setting == KeyEvent) {
 		return KeyPressMask | KeyReleaseMask;
 	}
@@ -21,14 +21,6 @@ long mtk_gem(int setting){
 	return 0;
 }
 
-void window_close(struct MTK_WinBase *window) {
-	window->loop_running = 0;
-	XFreeGC(window->dis, window->gc);
-	XDestroyWindow(window->dis, window->win);
-	XCloseDisplay(window->dis);
-	return;
-}
-
 void cue_window_close(struct MTK_WinBase *window, XEvent *event) {
 	int abort_window_close = 0;
 	
@@ -42,12 +34,12 @@ void cue_window_close(struct MTK_WinBase *window, XEvent *event) {
 		return;
 	}
 	
-	window_close(window);
+	window->loop_running = 0;
 	
 	return;
 }
 
-void event_handler(struct MTK_WinBase *window, XEvent *event){
+void event_handler(struct MTK_WinBase *window, XEvent *event) {
 	void (*key_func)(int, int, XEvent*, struct MTK_WinBase*);
 	void (*mouse_btn_func)(int, unsigned int, int, int, XEvent*, struct MTK_WinBase*);
 	void (*mouse_move_func)(int, int, XEvent*, struct MTK_WinBase*);
