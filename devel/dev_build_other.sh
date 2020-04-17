@@ -59,8 +59,22 @@ wait
 echo "Compilation: Complete"
 
 # Link together the element object files
-echo "Link: Element Objects"
-gcc $CFLAGS -r -o "./build/lib/wincomp/elements/ALL_Elements.obj" \
+echo "Link: All & Against X11 + FreeType + XML2 and Produce Finished Executable ./subatomic.out"
+gcc \
+  -lX11 \
+  -lpthread \
+  -lfreetype $(pkg-config --cflags freetype2) \
+  $CFLAGS -o "./subatomic.out" \
+  "./build/lib/wincomp/wincomp.obj" \
+  "./build/lib/wincomp/elements.obj" \
+  "./build/lib/wincomp/elements/ALL_Elements.obj" \
+  "./build/lib/wincomp/events.obj" \
+  "./build/lib/wincomp/drawing.obj" \
+  "./build/lib/wincomp/text.obj" \
+  "./build/lib/wincomp/font.obj" \
+  "./build/core/subatomic.obj" \
+  "./build/core/events.obj" \
+  "./build/lib/toolbox/cstr_manip.obj" \
   "./build/lib/wincomp/elements/button.obj" \
   "./build/lib/wincomp/elements/checkbox.obj" \
   "./build/lib/wincomp/elements/container.obj" \
@@ -69,32 +83,6 @@ gcc $CFLAGS -r -o "./build/lib/wincomp/elements/ALL_Elements.obj" \
   "./build/lib/wincomp/elements/radiobutton.obj" \
   "./build/lib/wincomp/elements/tab.obj" \
   "./build/lib/wincomp/elements/textbox.obj"
-
-echo "Link: All Compiled Objects"
-gcc $CFLAGS -r -o "./build/subatomic_p2.obj" \
-  "./build/core/subatomic.obj" \
-  "./build/core/events.obj" \
-  "./build/lib/toolbox/cstr_manip.obj" &
-
-wait
-gcc $CFLAGS -r -o "./build/subatomic_p1.obj" \
-  "./build/lib/wincomp/wincomp.obj" \
-  "./build/lib/wincomp/elements.obj" \
-  "./build/lib/wincomp/elements/ALL_Elements.obj" \
-  "./build/lib/wincomp/events.obj" \
-  "./build/lib/wincomp/drawing.obj" \
-  "./build/lib/wincomp/text.obj" \
-  "./build/lib/wincomp/font.obj" &
-
-wait
-echo "Link: Against X11 + FreeType + XML2 and Produce Finished Executable ./subatomic.out"
-gcc \
-  -lX11 \
-  -lpthread \
-  -lfreetype $(pkg-config --cflags freetype2) \
-  $CFLAGS -o "./subatomic.out" \
-  "./build/subatomic_p1.obj" \
-  "./build/subatomic_p2.obj"
 
 echo "Deleting Build Directory"
 rm -rf "/dev/shm/devel"
