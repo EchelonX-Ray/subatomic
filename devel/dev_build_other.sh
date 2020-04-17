@@ -67,7 +67,6 @@ gcc \
   $CFLAGS -o "./subatomic.out" \
   "./build/lib/wincomp/wincomp.obj" \
   "./build/lib/wincomp/elements.obj" \
-  "./build/lib/wincomp/elements/ALL_Elements.obj" \
   "./build/lib/wincomp/events.obj" \
   "./build/lib/wincomp/drawing.obj" \
   "./build/lib/wincomp/text.obj" \
