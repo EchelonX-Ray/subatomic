@@ -80,7 +80,7 @@ gcc $CFLAGS -o "./subatomic.out" \
   "./build/lib/wincomp/elements/tab.obj" \
   "./build/lib/wincomp/elements/textbox.obj" \
   $(pkg-config --libs x11) \
-  $(pkg-config --libs -cflags freetype2) \
+  $(pkg-config --libs --cflags freetype2) \
   -lpthread
 
 echo "Deleting Build Directory"
