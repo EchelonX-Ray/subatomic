@@ -72,6 +72,8 @@ int main(int argc, char *argv[]) {
 	
 	// Begin The Event Loop
 	XEvent event;
+	int i;
+	int count;
 	while(window.loop_running > 0) {
 		pthread_mutex_unlock(window.thread.lock);
 		poll_ret = poll(fds, 2, 1000); // Wait for Pipe Notification or Timeout after 1000 milliseconds
@@ -80,10 +82,12 @@ int main(int argc, char *argv[]) {
 			window.loop_running = 0;
 		} else if(poll_ret > 0) { // Pipe Notification Received
 			if ((fds[0].revents & POLLIN) > 0) { // Xlib Pipe Notification Received
-				XFlush(window.dis);
-				while (XEventsQueued(window.dis, QueuedAlready) > 0) {
+				count = XEventsQueued(window.dis, QueuedAfterFlush);
+				i = 0;
+				while (i < count) {
 					XNextEvent(window.dis, &event);
 					event_handler(&window, &event);
+					i++;
 				}
 			}
 			if ((fds[1].revents & POLLIN) > 0) { // External Pipe Notification Received
@@ -113,12 +117,11 @@ int main(int argc, char *argv[]) {
 	//XCloseDisplay(window.dis); // -- Causes Errors, need to do more research
 	
 	// Close the opened file descriptors
-	close(window.fd);
-	close(window.thread.fd);
-	close(fds[1].fd);
-	close(fds[0].fd);
+	close(pipefd_pair[0]);
+	close(pipefd_pair[1]);
 	
 	// Free up allocated memory
+	//free_window(&window);
 	free(window.mouse_state.pixel_element_map);
 	free(window.bitmap);
 	free_element_tree(root_cont);

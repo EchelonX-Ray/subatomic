@@ -59,6 +59,7 @@ struct MTK_WinBase {
 	uint32_t *bitmap;
 	long events;
 	volatile unsigned int loop_running;
+	unsigned int cursor;
 	
 	void* event_handles[MTKEvent_Count];
 	
@@ -73,10 +74,12 @@ struct MTK_WinBase {
 	
 	int ignore_key_repeat;					// Set this to "1" disable Key Repeat
 	int _internal_ignore_next_ke;			// Used as part of the ignore key repeat feature.  This is used internally.  It should not be touched by programs using this library.
+	Cursor _internal_cursor;
 };
 
 void window_struct_init(struct MTK_WinBase *window);
 void create_window(struct MTK_WinBase *vals);
+void free_window(struct MTK_WinBase *window);
 
 #include "./events.h"
 

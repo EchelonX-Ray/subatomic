@@ -1,4 +1,7 @@
 #include "./wincomp.h"
+#include <X11/cursorfont.h>
+#include <X11/Xcursor/Xcursor.h>
+#include <unistd.h>
 
 /*
 struct MTK_WinMouseStateTracking {
@@ -14,6 +17,7 @@ struct MTK_WinMouseStateTracking {
 
 void window_struct_init(struct MTK_WinBase *window){
 	window->loop_running = 2;
+	window->cursor = XC_left_ptr;
 	window->ignore_key_repeat = 0;
 	window->mouse_state.pixel_element_map = 0;
 	window->mouse_state.previous_mouse_element = 0;
@@ -78,6 +82,12 @@ void create_window(struct MTK_WinBase *vals){
 	
 	vals->fd = ConnectionNumber(vals->dis);
 	
+	//vals->_internal_cursor = XcursorLibraryLoadCursor(vals->dis, "xterm");
+	//XDefineCursor(vals->dis, vals->win, vals->_internal_cursor);
+	//XSetWindowAttributes attrib;
+	//attrib.cursor = vals->_internal_cursor;
+	//XChangeWindowAttributes(vals->dis, vals->win, CWCursor, &attrib);
+	
 	//XWindowAttributes ra;
 	//XGetWindowAttributes(vals->dis, vals->root_win, &ra);
 	//int wid = ra.width;
@@ -104,5 +114,14 @@ void create_window(struct MTK_WinBase *vals){
 	
 	//return ptrs;
 	
+	return;
+}
+
+void free_window(struct MTK_WinBase *window){
+	printf("HereA\n");
+	//XFreeCursor(window->dis, window->_internal_cursor);
+	printf("HereB\n");
+	close(window->fd);
+	printf("HereC\n");
 	return;
 }

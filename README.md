@@ -19,7 +19,7 @@ As of writing this, only a development build script exists.
 Only execute it from the directory “/devel/”.  
 The script is located at “/devel/dev_build.sh”.  
 So it may be executed by the command “./dev_build.sh”.  
-Upon the successful completion of building the program, the program binary will be placed at: devel/subatomic.out
+Upon the successful completion of building the program, the program binary will be placed at: /devel/subatomic.out
 
 1) cd devel # Move the correct directory
 2) ./dev_build.sh # Run the build script

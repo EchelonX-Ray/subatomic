@@ -3,6 +3,7 @@
 #include "./../text.h"
 #include "./../../toolbox/cstr_manip.h"
 #include <stdlib.h>
+#include <X11/cursorfont.h>
 
 /*
 struct EL_textbox_t {
@@ -91,6 +92,22 @@ void draw_textbox(struct MTK_WinElement *element, struct MTK_WinBase *window) {
 	return;
 }
 
+void textbox_event_move(int x, int y, XEvent* event, struct MTK_WinBase* window) {
+	/*
+	if (window->cursor != XC_xterm) {
+		window->cursor = XC_xterm;
+		XFreeCursor(window->dis, window->_internal_cursor);
+		window->_internal_cursor = XCreateFontCursor(window->dis, window->cursor);
+		XSetWindowAttributes attrib;
+		attrib.cursor = window->_internal_cursor;
+		XChangeWindowAttributes(window->dis, window->win, CWCursor, &attrib);
+	}
+	*/
+	return;
+}
+void textbox_event_button(int state, unsigned int button, int x, int y, XEvent* event, struct MTK_WinBase* window) {
+	return;
+}
 void textbox_event_key(int state, int keycode, XEvent* event, struct MTK_WinBase* window) {
 	KeySym keysym;
 	KeySym keysym_num;
