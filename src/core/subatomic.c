@@ -5,10 +5,16 @@
 
 #include "./win_setup/main_win.c"
 
+#ifndef TEST_FONT_DIR
+#define TEST_FONT_DIR "/usr/share/fonts/dejavu/DejaVuSansMono.ttf"
+#endif
+
 int main(int argc, char *argv[]) {
 	// Setup the font definitions
 	struct MTK_WinFontPack font_pack;
-	setup_font("/usr/share/fonts/dejavu/DejaVuSansMono.ttf", 25, &font_pack);
+	printf(TEST_FONT_DIR);
+	printf("\n");
+	setup_font(TEST_FONT_DIR, 25, &font_pack);
 	
 	// Setup the window element definitions
 	struct MTK_WinElement *root_cont = calloc(1, sizeof(struct MTK_WinElement));
