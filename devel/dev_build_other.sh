@@ -61,11 +61,7 @@ echo "Compilation: Complete"
 
 # Link together the element object files
 echo "Link: All & Against X11 + FreeType + XML2 and Produce Finished Executable ./subatomic.out"
-gcc \
-  $(pkg-config --libs x11) \
-  -lpthread \
-  $(pkg-config --libs -cflags freetype2) \
-  $CFLAGS -o "./subatomic.out" \
+gcc $CFLAGS -o "./subatomic.out" \
   "./build/lib/wincomp/wincomp.obj" \
   "./build/lib/wincomp/elements.obj" \
   "./build/lib/wincomp/events.obj" \
@@ -82,7 +78,10 @@ gcc \
   "./build/lib/wincomp/elements/ml_textbox.obj" \
   "./build/lib/wincomp/elements/radiobutton.obj" \
   "./build/lib/wincomp/elements/tab.obj" \
-  "./build/lib/wincomp/elements/textbox.obj"
+  "./build/lib/wincomp/elements/textbox.obj" \
+  $(pkg-config --libs x11) \
+  $(pkg-config --libs -cflags freetype2) \
+  -lpthread
 
 echo "Deleting Build Directory"
 rm -rf "/dev/shm/devel"
