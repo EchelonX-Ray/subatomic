@@ -90,7 +90,6 @@ wait
 echo "Link: Against X11 + FreeType + XML2 and Produce Finished Executable ./subatomic.out"
 gcc \
   -lX11 \
-  -lXcursor \
   -lpthread \
   $(freetype-config --libs) $(freetype-config --cflags) \
   $CFLAGS -o "./subatomic.out" \
