@@ -1,6 +1,8 @@
 #!/bin/bash
 
+TEST_FONT_DIR="/usr/share/fonts/dejavu/DejaVuSansMono.ttf"
 CFLAGS="-Wall -std=c99 -pipe -O2 -flto -march=native"
+#CFLAGS="$CFLAGS -DDEVEL_STRIP_MCURSOR"
 
 echo "Create build directory structure"
 mkdir -p "/dev/shm/devel/subatomic/dev_build"
@@ -13,7 +15,7 @@ mkdir -p "./build/lib/wincomp/elements"
 
 # Complile the core program
 echo "Compile: subatomic.c"
-gcc -c "./../src/core/subatomic.c" -o "./build/core/subatomic.obj" $CFLAGS &
+gcc -c "./../src/core/subatomic.c" -o "./build/core/subatomic.obj" $CFLAGS -DTEST_FONT_DIR="\"$TEST_FONT_DIR\"" &
 echo "Compile: core/events.c"
 gcc -c "./../src/core/events.c" -o "./build/core/events.obj" $CFLAGS &
 
@@ -51,7 +53,7 @@ gcc -c "./../src/lib/wincomp/text.c" -o "./build/lib/wincomp/text.obj" $CFLAGS &
 echo "Compile: wincomp/elements.c"
 gcc -c "./../src/lib/wincomp/elements.c" -o "./build/lib/wincomp/elements.obj" $CFLAGS &
 echo "Compile: wincomp/font.c"
-gcc -c "./../src/lib/wincomp/font.c" -o "./build/lib/wincomp/font.obj" $(freetype-config --cflags) $CFLAGS &
+gcc -c "./../src/lib/wincomp/font.c" -o "./build/lib/wincomp/font.obj" $(pkg-config --cflags freetype2) $CFLAGS &
 
 # Wait for compilation to finish
 echo "Waiting for compilation to finish."

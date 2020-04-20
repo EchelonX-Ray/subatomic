@@ -122,11 +122,8 @@ void draw_bm(unsigned int x, unsigned int y, unsigned int width, unsigned int he
 	while (pixel_y < height && pixel_y < window->height) {
 		pixel_x = x;
 		while (pixel_x < width && pixel_x < window->width) {
-			//printf("TraceA\n");
 			XSetForeground(window->dis, window->gc, window->bitmap[pixel_y * window->width + pixel_x]);
-			//printf("TraceB\n");
 			XFillRectangle(window->dis, window->win, window->gc, pixel_x, pixel_y, 1, 1);
-			//printf("TraceC\n");
 			pixel_x++;
 		}
 		pixel_y++;

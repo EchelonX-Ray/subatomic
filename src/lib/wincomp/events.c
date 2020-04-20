@@ -1,4 +1,6 @@
 #include "./events.h"
+#include "./elements.h"
+#include "./drawing.h"
 
 // KeyEvent MouseBtnEvent MouseMoveEvent LeaveEvent ExposeEvent
 // ExposureMask|ButtonPressMask|ButtonReleaseMask|KeyPressMask|KeyReleaseMask|PointerMotionMask|LeaveWindowMask
@@ -36,6 +38,81 @@ void cue_window_close(struct MTK_WinBase *window, XEvent *event) {
 	
 	window->loop_running = 0;
 	
+	return;
+}
+
+void element_mousemotion_event(int x, int y, XEvent* event, struct MTK_WinBase* window) {
+	if (event == 0 || window == 0) {
+		return;
+	}
+	unsigned int element_redraw_required;
+	unsigned int prev_element_redraw_required;
+	struct MTK_WinElement *element;
+	struct MTK_WinElement *previous_mouse_element;
+	
+	if (x >= 0 && x < window->width && y >= 0 && y < window->height) {
+		element = window->mouse_state.pixel_element_map[y * window->width + x];
+	} else {
+		element = 0;
+	}
+	
+	previous_mouse_element = window->mouse_state.previous_mouse_element;
+	element_redraw_required = 0;
+	prev_element_redraw_required = 0;
+	if (element == 0) {
+#ifndef DEVEL_STRIP_MCURSOR
+		if (window->_internal_cursor_index != CS_Pointer) {
+			window->_internal_cursor_index = CS_Pointer;
+			XDefineCursor(window->dis, window->win, window->_internal_cursor[CS_Pointer]);
+		}
+#endif
+		window->mouse_state.previous_mouse_element = 0;
+		goto do_only_previous_element_operations;
+	}
+	if (element->type == EL_BUTTON) {
+		element_redraw_required |= button_event_move(x, y, event, element, window);
+	}
+	if (element->type == EL_TEXTBOX) {
+		element_redraw_required |= textbox_event_move(x, y, event, element, window);
+	}
+	if (previous_mouse_element != element) {
+		window->mouse_state.previous_mouse_element = element;
+		
+		do_only_previous_element_operations:
+		if (previous_mouse_element != 0) {
+			if (previous_mouse_element->type == EL_BUTTON) {
+				prev_element_redraw_required |= button_leave(x, y, event, previous_mouse_element, window);
+			}
+			if (previous_mouse_element->type == EL_TEXTBOX) {
+				prev_element_redraw_required |= textbox_leave(x, y, event, previous_mouse_element, window);
+			}
+			
+			if ((element_redraw_required & 0x2) == 0) {
+				if (prev_element_redraw_required & 0x2) {
+					element_redraw_required |= 0x2;
+				} else if (prev_element_redraw_required & 0x1) {
+					draw_bm(	previous_mouse_element->_internal_computed_xoffset, \
+								previous_mouse_element->_internal_computed_yoffset, \
+								previous_mouse_element->_internal_computed_width, \
+								previous_mouse_element->_internal_computed_height, \
+								window	);
+				}
+			}
+		}
+	}
+	if (element_redraw_required & 0x2) {
+		draw_bm(	0, \
+					0, \
+					window->width, \
+					window->height, \
+					window	);
+	} else if (element_redraw_required & 0x1) {
+		draw_bm(	element->_internal_computed_xoffset, \
+					element->_internal_computed_yoffset, \
+					element->_internal_computed_width, \
+					element->_internal_computed_height, \
+					window	);
+	}
 	return;
 }
 

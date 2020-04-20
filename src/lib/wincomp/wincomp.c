@@ -2,6 +2,7 @@
 #include <X11/cursorfont.h>
 //#include <X11/Xcursor/Xcursor.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 /*
 struct MTK_WinMouseStateTracking {
@@ -17,14 +18,9 @@ struct MTK_WinMouseStateTracking {
 
 void window_struct_init(struct MTK_WinBase *window){
 	window->loop_running = 2;
-	window->cursor = XC_left_ptr;
 	window->ignore_key_repeat = 0;
 	window->mouse_state.pixel_element_map = 0;
 	window->mouse_state.previous_mouse_element = 0;
-	window->mouse_state.previous_mouse_x = 0;
-	window->mouse_state.previous_mouse_y = 0;
-	window->mouse_state.mouse_down_x = 0;
-	window->mouse_state.mouse_down_y = 0;
 	window->mouse_state.mouse_state = MS_UP;
 	window->cursor_blink = 1;
 	window->root_element = 0;
@@ -83,6 +79,16 @@ void create_window(struct MTK_WinBase *vals){
 	
 	vals->fd = ConnectionNumber(vals->dis);
 	
+#ifndef DEVEL_STRIP_MCURSOR
+	vals->_internal_cursor = malloc(CS_COUNT * sizeof(Cursor));
+	
+	vals->_internal_cursor[CS_Pointer] = XCreateFontCursor(vals->dis, XC_left_ptr);
+	vals->_internal_cursor[CS_Text] = XCreateFontCursor(vals->dis, XC_xterm);
+	
+	vals->_internal_cursor_index = CS_Pointer;
+	XDefineCursor(vals->dis, vals->win, vals->_internal_cursor[CS_Pointer]);
+#endif
+	
 	//vals->_internal_cursor = XcursorLibraryLoadCursor(vals->dis, "xterm");
 	//XDefineCursor(vals->dis, vals->win, vals->_internal_cursor);
 	//XSetWindowAttributes attrib;
@@ -120,10 +126,14 @@ void create_window(struct MTK_WinBase *vals){
 
 void free_window(struct MTK_WinBase *window){
 	XUnmapWindow(window->dis, window->win);
-	XDestroyWindow(window->dis, window->win);
-	XCloseDisplay(window->dis);
 	XFree(window->gc);
-	//XFreeCursor(window->dis, window->_internal_cursor);
+	XDestroyWindow(window->dis, window->win);
+#ifndef DEVEL_STRIP_MCURSOR
+	XFreeCursor(window->dis, window->_internal_cursor[CS_Pointer]);
+	XFreeCursor(window->dis, window->_internal_cursor[CS_Text]);
+	free(window->_internal_cursor);
+#endif
+	XCloseDisplay(window->dis);
 	close(window->fd);
 	return;
 }

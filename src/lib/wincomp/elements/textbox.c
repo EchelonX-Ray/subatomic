@@ -92,20 +92,28 @@ void draw_textbox(struct MTK_WinElement *element, struct MTK_WinBase *window) {
 	return;
 }
 
-void textbox_event_move(int x, int y, XEvent* event, struct MTK_WinBase* window) {
-	/*
-	if (window->cursor != XC_xterm) {
-		window->cursor = XC_xterm;
-		XFreeCursor(window->dis, window->_internal_cursor);
-		window->_internal_cursor = XCreateFontCursor(window->dis, window->cursor);
-		XSetWindowAttributes attrib;
-		attrib.cursor = window->_internal_cursor;
-		XChangeWindowAttributes(window->dis, window->win, CWCursor, &attrib);
+unsigned int textbox_leave(int x, int y, XEvent* event, struct MTK_WinElement* element, struct MTK_WinBase* window) {
+	unsigned int redraw_required;
+	redraw_required = 0;
+	if (element->mouse_state != EL_MS_NORMAL) {
+		element->mouse_state = EL_MS_NORMAL;
+		draw_textbox(element, window);
+		redraw_required |= 0x1;
 	}
-	*/
-	return;
+	return redraw_required;
 }
-void textbox_event_button(int state, unsigned int button, int x, int y, XEvent* event, struct MTK_WinBase* window) {
+unsigned int textbox_event_move(int x, int y, XEvent* event, struct MTK_WinElement* element, struct MTK_WinBase* window) {
+	unsigned int redraw_required;
+	redraw_required = 0;
+#ifndef DEVEL_STRIP_MCURSOR
+	if (window->_internal_cursor_index != CS_Text) {
+		window->_internal_cursor_index = CS_Text;
+		XDefineCursor(window->dis, window->win, window->_internal_cursor[CS_Text]);
+	}
+#endif
+	return redraw_required;
+}
+void textbox_event_button(int state, unsigned int button, int x, int y, XEvent* event, struct MTK_WinElement* element, struct MTK_WinBase* window) {
 	return;
 }
 void textbox_event_key(int state, int keycode, XEvent* event, struct MTK_WinElement* element, struct MTK_WinBase* window) {

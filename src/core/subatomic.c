@@ -12,8 +12,7 @@
 int main(int argc, char *argv[]) {
 	// Setup the font definitions
 	struct MTK_WinFontPack font_pack;
-	printf(TEST_FONT_DIR);
-	printf("\n");
+	printf("%s\n", TEST_FONT_DIR);
 	setup_font(TEST_FONT_DIR, 25, &font_pack);
 	
 	// Setup the window element definitions
@@ -52,7 +51,7 @@ int main(int argc, char *argv[]) {
 	
 	// Setup Threads and Pipe Notification of the Event Loop
 	int pipefd_pair[2];
-	if(pipe(pipefd_pair) != 0){
+	if (pipe(pipefd_pair) != 0) {
 		return -1;
 	}
 	pthread_t threads[1];
@@ -78,13 +77,13 @@ int main(int argc, char *argv[]) {
 	XEvent event;
 	int i;
 	int count;
-	while(window.loop_running > 0) {
+	while (window.loop_running > 0) {
 		pthread_mutex_unlock(window.thread.lock);
 		poll_ret = poll(fds, 2, 1000); // Wait for Pipe Notification or Timeout after 1000 milliseconds
 		pthread_mutex_lock(window.thread.lock);
 		if (poll_ret < 0) { // Error
 			window.loop_running = 0;
-		} else if(poll_ret > 0) { // Pipe Notification Received
+		} else if (poll_ret > 0) { // Pipe Notification Received
 			if ((fds[0].revents & POLLIN) > 0) { // Xlib Pipe Notification Received
 				count = XEventsQueued(window.dis, QueuedAfterFlush);
 				i = 0;
@@ -96,7 +95,7 @@ int main(int argc, char *argv[]) {
 			}
 			if ((fds[1].revents & POLLIN) > 0) { // External Pipe Notification Received
 				charbuf = 0;
-				if(read(fds[1].fd, &charbuf, 1) == 1) {
+				if (read(fds[1].fd, &charbuf, 1) == 1) {
 					if (charbuf == 1) {
 						draw_element(window.focused_element, &window);
 						draw_bm( window.focused_element->_internal_computed_xoffset, \

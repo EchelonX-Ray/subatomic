@@ -24,13 +24,15 @@
 #define MS_UP 0
 #define MS_DOWN 1
 
+#ifndef DEVEL_STRIP_MCURSOR
+#define CS_COUNT 2
+#define CS_Pointer 0
+#define CS_Text 1
+#endif
+
 struct MTK_WinMouseStateTracking {
 	struct MTK_WinElement **pixel_element_map;
 	struct MTK_WinElement *previous_mouse_element;
-	signed int previous_mouse_x;
-	signed int previous_mouse_y;
-	signed int mouse_down_x;
-	signed int mouse_down_y;
 	unsigned int mouse_state;
 };
 struct MTK_WinThreadReturn {
@@ -59,7 +61,6 @@ struct MTK_WinBase {
 	uint32_t *bitmap;
 	long events;
 	volatile unsigned int loop_running;
-	unsigned int cursor;
 	
 	void* event_handles[MTKEvent_Count];
 	
@@ -74,7 +75,10 @@ struct MTK_WinBase {
 	
 	int ignore_key_repeat;					// Set this to "1" disable Key Repeat
 	int _internal_ignore_next_ke;			// Used as part of the ignore key repeat feature.  This is used internally.  It should not be touched by programs using this library.
-	Cursor _internal_cursor;
+#ifndef DEVEL_STRIP_MCURSOR
+	Cursor *_internal_cursor;
+	unsigned int _internal_cursor_index;
+#endif
 };
 
 void window_struct_init(struct MTK_WinBase *window);

@@ -18,10 +18,6 @@ void exposure_event(XEvent* event, struct MTK_WinBase* window){
 	return;
 }
 void button_event(int state, unsigned int button, int x, int y, XEvent* event, struct MTK_WinBase* window){
-	//printf("Button Event: State-%d", state);
-	//printf(" button-%d ", button);
-	//printf(" x-%d ", x);
-	//printf(" y-%d\n", y);
 	reset_the_cursor(window);
 	draw_element(window->focused_element, window);
 	draw_bm(	window->focused_element->_internal_computed_xoffset, \
@@ -51,46 +47,12 @@ void pointer_motion_event(int x, int y, XEvent* event, struct MTK_WinBase* windo
 		return;
 	}
 	
-	struct MTK_WinElement *element;
-	struct MTK_WinElement *previous_element;
-	unsigned int redraw_required = 0;
-	element = window->mouse_state.pixel_element_map[y * window->width + x];
-	previous_element = window->mouse_state.previous_mouse_element;
-	if (previous_element != 0 && previous_element != element) {
-		if (previous_element->mouse_state != EL_MS_NORMAL) {
-			previous_element->mouse_state = EL_MS_NORMAL;
-			redraw_required = 1;
-		}
-		window->mouse_state.previous_mouse_element = 0;
-	}
-	if (element != 0 && window->mouse_state.mouse_state != MS_DOWN) {
-		if (element->mouse_state != EL_MS_HOVER) {
-			element->mouse_state = EL_MS_HOVER;
-			redraw_required = 1;
-		}
-		window->mouse_state.previous_mouse_element = element;
-	}
-	window->mouse_state.previous_mouse_x = x;
-	window->mouse_state.previous_mouse_y = y;
-	if (redraw_required == 1) {
-		draw_element(window->root_element, window);
-		draw_bm(0, 0, 640, 480, window);
-	}
+	element_mousemotion_event(x, y, event, window);
 	return;
 }
 void leave_window_event(int x, int y, XEvent* event, struct MTK_WinBase* window){
-	struct MTK_WinElement *previous_element;
-	previous_element = window->mouse_state.previous_mouse_element;
-	if (previous_element != 0) {
-		if (previous_element->mouse_state != EL_MS_NORMAL) {
-			previous_element->mouse_state = EL_MS_NORMAL;
-			draw_element(window->root_element, window);
-			draw_bm(0, 0, 640, 480, window);
-		}
-		window->mouse_state.previous_mouse_element = 0;
-	}
-	//printf("Leave Event: x-%d", x);
-	//printf(" y-%d\n", y);
+	element_mousemotion_event(x, y, event, window);
+	return;
 }
 int before_closing(struct MTK_WinBase* window, XEvent* event){
 	return 0;

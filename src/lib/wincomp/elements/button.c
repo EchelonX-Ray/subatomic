@@ -66,3 +66,32 @@ void draw_button(struct MTK_WinElement *element, struct MTK_WinBase *window) {
 	}
 	return;
 }
+
+unsigned int button_leave(int x, int y, XEvent* event, struct MTK_WinElement* element, struct MTK_WinBase* window) {
+	unsigned int redraw_required;
+	redraw_required = 0;
+	if (element->mouse_state != EL_MS_NORMAL) {
+		element->mouse_state = EL_MS_NORMAL;
+		draw_element(window->root_element, window);
+		redraw_required |= 0x1;
+	}
+	return redraw_required;
+}
+unsigned int button_event_move(int x, int y, XEvent* event, struct MTK_WinElement* element, struct MTK_WinBase* window) {
+	unsigned int redraw_required;
+	redraw_required = 0;
+	if (window->mouse_state.previous_mouse_element != element) {
+#ifndef DEVEL_STRIP_MCURSOR
+		if (window->_internal_cursor_index != CS_Pointer) {
+			window->_internal_cursor_index = CS_Pointer;
+			XDefineCursor(window->dis, window->win, window->_internal_cursor[CS_Pointer]);
+		}
+#endif
+		if (element->mouse_state == EL_MS_NORMAL) {
+			element->mouse_state = EL_MS_HOVER;
+			draw_button(element, window);
+			redraw_required |= 0x1;
+		}
+	}
+	return redraw_required;
+}

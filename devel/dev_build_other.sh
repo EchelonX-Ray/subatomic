@@ -14,7 +14,7 @@ mkdir -p "./build/lib/wincomp/elements"
 
 # Complile the core program
 echo "Compile: subatomic.c"
-gcc -c "./../src/core/subatomic.c" -o "./build/core/subatomic.obj" $CFLAGS -DTEST_FONT_DIR=\"$TEST_FONT_DIR\" &
+gcc -c "./../src/core/subatomic.c" -o "./build/core/subatomic.obj" $CFLAGS -DTEST_FONT_DIR="\"$TEST_FONT_DIR\"" &
 echo "Compile: core/events.c"
 gcc -c "./../src/core/events.c" -o "./build/core/events.obj" $CFLAGS &
 
