@@ -80,7 +80,7 @@ unsigned int button_leave(int x, int y, XEvent* event, struct MTK_WinElement* el
 unsigned int button_event_move(int x, int y, XEvent* event, struct MTK_WinElement* element, struct MTK_WinBase* window) {
 	unsigned int redraw_required;
 	redraw_required = 0;
-	if (window->mouse_state.previous_mouse_element != element) {
+	if (window->_internal_mouse_state.previous_mouse_element != element) {
 #ifndef DEVEL_STRIP_MCURSOR
 		if (window->_internal_cursor_index != CS_Pointer) {
 			window->_internal_cursor_index = CS_Pointer;
@@ -93,5 +93,29 @@ unsigned int button_event_move(int x, int y, XEvent* event, struct MTK_WinElemen
 			redraw_required |= 0x1;
 		}
 	}
+	return redraw_required;
+}
+unsigned int button_event_button(int state, unsigned int button, int x, int y, XEvent* event, struct MTK_WinElement* element, struct MTK_WinBase* window) {
+	unsigned int redraw_required;
+	redraw_required = 0;
+	if        (state == MS_DOWN) {
+		element->mouse_state = EL_MS_DOWN;
+		draw_button(element, window);
+	} else if (state == MS_UP) {
+		// In the event of a mouse-up event, we need to double check if the mouse is over the element.
+		// This function is called on mouse-up for the element to which the previous mouse-down event occured, 
+		// even if the mouse is no longer over top.
+		signed int x_max;
+		signed int y_max;
+		x_max = element->_internal_computed_xoffset + element->_internal_computed_width;
+		y_max = element->_internal_computed_yoffset + element->_internal_computed_height;
+		if (x >= element->_internal_computed_xoffset && x <= x_max && y >= element->_internal_computed_yoffset && y <= y_max) {
+			element->mouse_state = EL_MS_HOVER;
+		} else {
+			element->mouse_state = EL_MS_NORMAL;
+		}
+		draw_element(window->root_element, window);
+	}
+	redraw_required |= 0x1;
 	return redraw_required;
 }

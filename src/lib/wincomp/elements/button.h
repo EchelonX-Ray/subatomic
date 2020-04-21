@@ -18,5 +18,6 @@ struct EL_button_t {
 void draw_button(struct MTK_WinElement *element, struct MTK_WinBase *window);
 unsigned int button_leave(int x, int y, XEvent* event, struct MTK_WinElement* element, struct MTK_WinBase* window);
 unsigned int button_event_move(int x, int y, XEvent* event, struct MTK_WinElement* element, struct MTK_WinBase* window);
+unsigned int button_event_button(int state, unsigned int button, int x, int y, XEvent* event, struct MTK_WinElement* element, struct MTK_WinBase* window);
 
 #endif

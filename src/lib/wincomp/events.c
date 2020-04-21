@@ -41,6 +41,56 @@ void cue_window_close(struct MTK_WinBase *window, XEvent *event) {
 	return;
 }
 
+void element_mousebutton_event(int state, unsigned int button, int x, int y, XEvent* event, struct MTK_WinBase* window) {
+	if (event == 0 || window == 0) {
+		return;
+	}
+	unsigned int element_redraw_required;
+	struct MTK_WinElement *element;
+	if (x >= 0 && x < window->width && y >= 0 && y < window->height) {
+		element = window->_internal_mouse_state.pixel_element_map[y * window->width + x];
+	} else {
+		element = 0;
+	}
+	element_redraw_required = 0;
+	
+	if (state == MS_UP) {
+		element = window->_internal_mouse_state.previous_mouse_element;
+	}
+	if (element != 0) {
+		if        (element->type == EL_BUTTON) {
+			element_redraw_required |= button_event_button(state, button, x, y, event, element, window);
+		} else if (element->type == EL_TEXTBOX) {
+			element_redraw_required |= textbox_event_button(state, button, x, y, event, element, window);
+		}
+	}
+	if        (state == MS_DOWN) {
+		window->_internal_mouse_state.previous_mouse_element = element;
+		window->_internal_mouse_state.mouse_state = MS_DOWN;
+	} else if (state == MS_UP) {
+		window->_internal_mouse_state.mouse_state = MS_UP;
+		if (window->_internal_mouse_state.mouse_moved_while_button_down == 1) {
+			window->_internal_mouse_state.mouse_moved_while_button_down = 0;
+			element_mousemotion_event(x, y, event, window);
+		}
+	}
+	
+	if (element_redraw_required & 0x2) {
+		draw_bm(	0, \
+					0, \
+					window->width, \
+					window->height, \
+					window	);
+	} else if (element_redraw_required & 0x1) {
+		draw_bm(	element->_internal_computed_xoffset, \
+					element->_internal_computed_yoffset, \
+					element->_internal_computed_width, \
+					element->_internal_computed_height, \
+					window	);
+	}
+	return;
+}
+
 void element_mousemotion_event(int x, int y, XEvent* event, struct MTK_WinBase* window) {
 	if (event == 0 || window == 0) {
 		return;
@@ -51,14 +101,18 @@ void element_mousemotion_event(int x, int y, XEvent* event, struct MTK_WinBase* 
 	struct MTK_WinElement *previous_mouse_element;
 	
 	if (x >= 0 && x < window->width && y >= 0 && y < window->height) {
-		element = window->mouse_state.pixel_element_map[y * window->width + x];
+		element = window->_internal_mouse_state.pixel_element_map[y * window->width + x];
 	} else {
 		element = 0;
 	}
 	
-	previous_mouse_element = window->mouse_state.previous_mouse_element;
+	previous_mouse_element = window->_internal_mouse_state.previous_mouse_element;
 	element_redraw_required = 0;
 	prev_element_redraw_required = 0;
+	if (window->_internal_mouse_state.mouse_state == MS_DOWN) {
+		window->_internal_mouse_state.mouse_moved_while_button_down = 1;
+		element = previous_mouse_element;
+	}
 	if (element == 0) {
 #ifndef DEVEL_STRIP_MCURSOR
 		if (window->_internal_cursor_index != CS_Pointer) {
@@ -66,24 +120,22 @@ void element_mousemotion_event(int x, int y, XEvent* event, struct MTK_WinBase* 
 			XDefineCursor(window->dis, window->win, window->_internal_cursor[CS_Pointer]);
 		}
 #endif
-		window->mouse_state.previous_mouse_element = 0;
+		window->_internal_mouse_state.previous_mouse_element = 0;
 		goto do_only_previous_element_operations;
 	}
-	if (element->type == EL_BUTTON) {
+	if        (element->type == EL_BUTTON) {
 		element_redraw_required |= button_event_move(x, y, event, element, window);
-	}
-	if (element->type == EL_TEXTBOX) {
+	} else if (element->type == EL_TEXTBOX) {
 		element_redraw_required |= textbox_event_move(x, y, event, element, window);
 	}
 	if (previous_mouse_element != element) {
-		window->mouse_state.previous_mouse_element = element;
+		window->_internal_mouse_state.previous_mouse_element = element;
 		
 		do_only_previous_element_operations:
 		if (previous_mouse_element != 0) {
-			if (previous_mouse_element->type == EL_BUTTON) {
+			if        (previous_mouse_element->type == EL_BUTTON) {
 				prev_element_redraw_required |= button_leave(x, y, event, previous_mouse_element, window);
-			}
-			if (previous_mouse_element->type == EL_TEXTBOX) {
+			} else if (previous_mouse_element->type == EL_TEXTBOX) {
 				prev_element_redraw_required |= textbox_leave(x, y, event, previous_mouse_element, window);
 			}
 			
@@ -174,12 +226,12 @@ void event_handler(struct MTK_WinBase *window, XEvent *event) {
 	}
 	if (event->type == ButtonPress && window->event_handles[MouseBtnEvent] != 0) {
 		mouse_btn_func = window->event_handles[MouseBtnEvent];
-		mouse_btn_func(1, event->xbutton.button, event->xbutton.x, event->xbutton.y, event, window);
+		mouse_btn_func(MS_DOWN, event->xbutton.button, event->xbutton.x, event->xbutton.y, event, window);
 		return;
 	}
 	if (event->type == ButtonRelease && window->event_handles[MouseBtnEvent] != 0) {
 		mouse_btn_func = window->event_handles[MouseBtnEvent];
-		mouse_btn_func(2, event->xbutton.button, event->xbutton.x, event->xbutton.y, event, window);
+		mouse_btn_func(MS_UP, event->xbutton.button, event->xbutton.x, event->xbutton.y, event, window);
 		return;
 	}
 	if (event->type == MotionNotify && window->event_handles[MouseMoveEvent] != 0) {

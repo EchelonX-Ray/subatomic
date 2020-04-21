@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
 	
 	// Setup the global base window struct
 	struct MTK_WinBase window; // Declare the window struct
-	window_struct_init(&window); // Initialize the window struct values
+	window_struct_zero(&window); // Zero the window struct values
 	// Set the window values we need
 	window.title = "Sub-Atomic Editor";
 	window.events = mtk_gem(KeyEvent) | mtk_gem(MouseBtnEvent) | mtk_gem(MouseMoveEvent) | mtk_gem(LeaveEvent) | mtk_gem(ExposeEvent);
@@ -33,11 +33,10 @@ int main(int argc, char *argv[]) {
 	window.event_handles[CloseEvent] = (void*)&before_closing;
 	window.width = 640;
 	window.height = 480;
-	window.bitmap = calloc(window.width * window.height, sizeof(uint32_t));
-	window.mouse_state.pixel_element_map = calloc(window.width * window.height, sizeof(struct MTK_WinElement**));
 	window.root_element = root_cont;
 	window.ignore_key_repeat = 0; // Ignore Key Repeat?
 	window.focused_element = root_cont->children[1];
+	window_struct_init(&window); // Initialize the window struct values
 	
 	// Compute the element geometry
 	// This must be done before any drawing
@@ -123,8 +122,6 @@ int main(int argc, char *argv[]) {
 	
 	// Free up allocated memory
 	free_window(&window);
-	free(window.mouse_state.pixel_element_map);
-	free(window.bitmap);
 	free_element_tree(root_cont);
 	free_font(&font_pack);
 	

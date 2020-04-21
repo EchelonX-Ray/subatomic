@@ -48,7 +48,7 @@ void set_pixel_element_map(signed int x, signed int y, unsigned int width, unsig
 	while (y < height && y < window->height && y >= 0) {
 		x = i;
 		while (x < width && x < window->width && x >= 0) {
-			window->mouse_state.pixel_element_map[y * window->width + x] = element;
+			window->_internal_mouse_state.pixel_element_map[y * window->width + x] = element;
 			x++;
 		}
 		y++;

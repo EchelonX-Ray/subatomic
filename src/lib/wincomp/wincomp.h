@@ -21,11 +21,13 @@
 
 #define MTKEvent_Count 6
 
-#define MS_UP 0
+#define MS_UP 2
 #define MS_DOWN 1
 
 #ifndef DEVEL_STRIP_MCURSOR
+// Array length
 #define CS_COUNT 2
+// Array indexes
 #define CS_Pointer 0
 #define CS_Text 1
 #endif
@@ -33,6 +35,7 @@
 struct MTK_WinMouseStateTracking {
 	struct MTK_WinElement **pixel_element_map;
 	struct MTK_WinElement *previous_mouse_element;
+	unsigned int mouse_moved_while_button_down;
 	unsigned int mouse_state;
 };
 struct MTK_WinThreadReturn {
@@ -66,7 +69,7 @@ struct MTK_WinBase {
 	
 	struct MTK_WinElement *root_element;
 	struct MTK_WinElement *focused_element;
-	struct MTK_WinMouseStateTracking mouse_state;
+	struct MTK_WinMouseStateTracking _internal_mouse_state;
 	volatile unsigned char cursor_blink;
 	struct MTK_WinThreadParam thread;
 	
@@ -81,6 +84,7 @@ struct MTK_WinBase {
 #endif
 };
 
+void window_struct_zero(struct MTK_WinBase *window);
 void window_struct_init(struct MTK_WinBase *window);
 void create_window(struct MTK_WinBase *vals);
 void free_window(struct MTK_WinBase *window);

@@ -16,12 +16,13 @@ struct MTK_WinMouseStateTracking {
 };
 */
 
-void window_struct_init(struct MTK_WinBase *window){
+void window_struct_zero(struct MTK_WinBase *window){
 	window->loop_running = 2;
 	window->ignore_key_repeat = 0;
-	window->mouse_state.pixel_element_map = 0;
-	window->mouse_state.previous_mouse_element = 0;
-	window->mouse_state.mouse_state = MS_UP;
+	window->_internal_mouse_state.pixel_element_map = 0;
+	window->_internal_mouse_state.previous_mouse_element = 0;
+	window->_internal_mouse_state.mouse_moved_while_button_down = 0;
+	window->_internal_mouse_state.mouse_state = MS_UP;
 	window->cursor_blink = 1;
 	window->root_element = 0;
 	window->focused_element = 0;
@@ -33,6 +34,13 @@ void window_struct_init(struct MTK_WinBase *window){
 		window->event_handles[i] = 0;
 		i++;
 	}
+		
+	return;
+}
+
+void window_struct_init(struct MTK_WinBase *window){	
+	window->bitmap = calloc(window->width * window->height, sizeof(uint32_t));
+	window->_internal_mouse_state.pixel_element_map = calloc(window->width * window->height, sizeof(struct MTK_WinElement**));
 	
 	return;
 }
@@ -135,5 +143,7 @@ void free_window(struct MTK_WinBase *window){
 #endif
 	XCloseDisplay(window->dis);
 	close(window->fd);
+	free(window->_internal_mouse_state.pixel_element_map);
+	free(window->bitmap);
 	return;
 }

@@ -113,8 +113,9 @@ unsigned int textbox_event_move(int x, int y, XEvent* event, struct MTK_WinEleme
 #endif
 	return redraw_required;
 }
-void textbox_event_button(int state, unsigned int button, int x, int y, XEvent* event, struct MTK_WinElement* element, struct MTK_WinBase* window) {
-	return;
+unsigned int textbox_event_button(int state, unsigned int button, int x, int y, XEvent* event, struct MTK_WinElement* element, struct MTK_WinBase* window) {
+	printf("tbstate: %d\n", state);
+	return 0;
 }
 void textbox_event_key(int state, int keycode, XEvent* event, struct MTK_WinElement* element, struct MTK_WinBase* window) {
 	KeySym keysym;

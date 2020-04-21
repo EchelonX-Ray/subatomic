@@ -7,9 +7,9 @@ void exposure_event(XEvent* event, struct MTK_WinBase* window){
 		window->width = window_attributes_return.width;
 		window->height = window_attributes_return.height;
 		free(window->bitmap);
-		free(window->mouse_state.pixel_element_map);
+		free(window->_internal_mouse_state.pixel_element_map);
 		window->bitmap = calloc(window->width * window->height, sizeof(uint32_t));
-		window->mouse_state.pixel_element_map = calloc(window->width * window->height, sizeof(struct MTK_WinElement**));
+		window->_internal_mouse_state.pixel_element_map = calloc(window->width * window->height, sizeof(struct MTK_WinElement**));
 		compute_element_internals(window);
 		window->loop_running = 1;
 	}
@@ -17,7 +17,9 @@ void exposure_event(XEvent* event, struct MTK_WinBase* window){
 	draw_bm(0, 0, window->width, window->height, window);
 	return;
 }
-void button_event(int state, unsigned int button, int x, int y, XEvent* event, struct MTK_WinBase* window){
+void button_event(int state, unsigned int button, int x, int y, XEvent* event, struct MTK_WinBase* window) {
+	element_mousebutton_event(state, button, x, y, event, window);
+	/*
 	reset_the_cursor(window);
 	draw_element(window->focused_element, window);
 	draw_bm(	window->focused_element->_internal_computed_xoffset, \
@@ -25,6 +27,7 @@ void button_event(int state, unsigned int button, int x, int y, XEvent* event, s
 				window->focused_element->_internal_computed_width, \
 				window->focused_element->_internal_computed_height, \
 				window	);
+	*/
 	//draw_element(window->root_element, window);
 	//draw_bm(0, 0, window->width, window->height, window);
 	return;
