@@ -30,7 +30,11 @@ struct MTK_WinFontPack {
 unsigned int get_char_width(char charactor, struct MTK_WinFontMap *fontmap);
 unsigned int get_char_height(char charactor, struct MTK_WinFontMap *fontmap);
 unsigned int get_text_width(char *string, struct MTK_WinFontMap *fontmap);
-unsigned int draw_text(unsigned int x, unsigned int y, unsigned int max_width, unsigned int max_height, char *string, uint32_t color, struct MTK_WinFontMap *fontmap, struct MTK_WinBase *window);
-unsigned int draw_char(unsigned int x, unsigned int y, unsigned int max_width, unsigned int max_height, char charactor, uint32_t color, struct MTK_WinFontMap *fontmap, struct MTK_WinBase *window);
+unsigned int draw_text(	unsigned int x, unsigned int y, unsigned int clip_width, unsigned int clip_height, 
+								unsigned int max_width, unsigned int max_height, char *string, uint32_t color, 
+								struct MTK_WinFontMap *fontmap, struct MTK_WinBase *window);
+unsigned int draw_char(	unsigned int x, unsigned int y, unsigned int clip_width, unsigned int clip_height, 
+								unsigned int max_width, unsigned int max_height, char charactor, uint32_t color, 
+								struct MTK_WinFontMap *fontmap, struct MTK_WinBase *window);
 
 #endif

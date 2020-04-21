@@ -62,7 +62,7 @@ void draw_button(struct MTK_WinElement *element, struct MTK_WinBase *window) {
 	}
 	
 	if(width - 2 >= 0 && height - 2 >= 0) {
-		draw_text(x + text_centering_x_offset + 1, y + text_centering_y_offset + 1, width - 2, height - 2, type_spec->text, text_color, type_spec->fontmap, window);
+		draw_text(x + text_centering_x_offset + 1, y + text_centering_y_offset + 1, 0, 0, width - 2, height - 2, type_spec->text, text_color, type_spec->fontmap, window);
 	}
 	return;
 }

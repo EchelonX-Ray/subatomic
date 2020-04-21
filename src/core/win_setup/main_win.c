@@ -95,6 +95,7 @@ void setup_main_win_elements(struct MTK_WinElement **element, struct MTK_WinFont
 	textbox__type_spec->text = calloc(1, sizeof(char));
 	textbox__type_spec->def_text = "Default Text";
 	textbox__type_spec->cursor_position = 0;
+	textbox__type_spec->text_drawing_offset = 0;
 	textbox__type_spec->fontmap = &(font_pack->font_style[0]);
 	
 	textbox->id = 1;

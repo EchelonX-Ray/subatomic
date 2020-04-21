@@ -17,6 +17,70 @@ struct EL_textbox_t {
 };
 */
 
+void move_textbox_cursor(struct MTK_WinElement *element, signed int offset) {
+	if (element == 0) { // Probably unnecessary error checking / Consider removing
+		return;
+	}
+	if (element->type_spec == 0) { // Probably unnecessary error checking / Consider removing
+		return;
+	}
+	
+	struct EL_textbox_t *type_spec;
+	unsigned int text_length;
+	unsigned int cursor_position;
+	
+	type_spec = element->type_spec;
+	if (type_spec->text == 0) { // Probably unnecessary error checking / Consider removing
+		return;
+	}
+	
+	text_length = cstrlen(type_spec->text);
+	cursor_position = type_spec->cursor_position + offset;
+	
+	// Check to make sure the desired cursor_position does not overflow the bounderies of the text.
+	// Because of unsigned Two's complement integer wrapping, this check will also work if offset is negative and has a greater absolute value than text_length
+	// So it is equivalent to a signed operation of ((cursor_position > text_length) && (cursor_position < 0))
+	if (cursor_position < text_length) {
+		// Move the cursor
+		type_spec->cursor_position = cursor_position;
+		
+		// Does the new cursor position exist outside of the current textbox display window?
+		char *tmp_text;
+		unsigned int tmp_width_cursor;
+		unsigned int tmp_width_text;
+		unsigned int tmp_max_width;
+		tmp_max_width = element->_internal_computed_width;
+		if (tmp_max_width <= 4) {
+			tmp_max_width = 0;
+		} else {
+			tmp_max_width -= 4;
+		}
+		tmp_text = malloc(sizeof(char) * text_length);
+		cstrcpy(type_spec->text, tmp_text);
+		tmp_text[cursor_position] = 0;
+		tmp_width_cursor = get_text_width(tmp_text, type_spec->fontmap);
+		tmp_width_text = get_text_width(type_spec->text, type_spec->fontmap);
+		free(tmp_text);
+		if (tmp_width_text <= tmp_max_width) {
+			type_spec->text_drawing_offset = 0;
+		} else {
+			if (type_spec->text_drawing_offset + tmp_max_width > tmp_width_text) {
+				type_spec->text_drawing_offset = tmp_width_text - tmp_max_width;
+			}
+			if (tmp_width_cursor < type_spec->text_drawing_offset) {
+				if (tmp_width_cursor == 0) {
+					type_spec->text_drawing_offset = tmp_width_cursor;
+				} else {
+					type_spec->text_drawing_offset = tmp_width_cursor - 1;
+				}
+			} else if (tmp_width_cursor > type_spec->text_drawing_offset + tmp_max_width) {
+				type_spec->text_drawing_offset = tmp_width_cursor - tmp_max_width;
+			}
+		}
+	}
+	return;
+}
+
 void draw_textbox(struct MTK_WinElement *element, struct MTK_WinBase *window) {
 	struct EL_textbox_t *type_spec;
 	struct MTK_WinFontMap *fontmap;
@@ -33,9 +97,10 @@ void draw_textbox(struct MTK_WinElement *element, struct MTK_WinBase *window) {
 	signed int height;
 	unsigned char cursor_blink;
 	unsigned int cursor_position;
+	unsigned int text_drawing_offset;
 	
 	type_spec = element->type_spec;
-	if (type_spec == 0) {
+	if (type_spec == 0) { // Probably unnecessary error checking / Consider removing
 		return;
 	}
 	text = type_spec->text;
@@ -46,6 +111,7 @@ void draw_textbox(struct MTK_WinElement *element, struct MTK_WinBase *window) {
 	border_color = type_spec->border_color;
 	fontmap = type_spec->fontmap;
 	cursor_position = type_spec->cursor_position;
+	text_drawing_offset = type_spec->text_drawing_offset;
 	focus = window->focused_element;
 	cursor_blink = window->cursor_blink;
 	x = element->_internal_computed_xoffset;
@@ -58,35 +124,42 @@ void draw_textbox(struct MTK_WinElement *element, struct MTK_WinBase *window) {
 	draw_rect(x, y, width, height, 1, border_color, window);
 	
 	if (width > 4 && height > 4) {
-		if (def_text == 0) {
-			def_text = "";
+		if (type_spec->text_drawing_offset > 0) {
+			x += 1;
+			width -= 2;
+		} else {
+			x += 2;
+			width -= 3;
 		}
+		y += 2;
+		height -= 4;
+		
 		if (text == 0) {
 			def_text = type_spec->def_text;
 		} else if(text[0] == 0) {
 			def_text = type_spec->def_text;
 		}
-		draw_text(x + 2, y + 2, width - 4, height - 4, def_text, def_text_color, fontmap, window);
+		draw_text(x, y, 0, 0, width, height, def_text, def_text_color, fontmap, window);
 		if (focus == element && cursor_blink == 1 && cstrlen(text) > cursor_position) {
 			char *tmp_text;
 			unsigned int tmp_width;
 			tmp_text = malloc(sizeof(char) * cstrlen(text));
 			cstrcpy(text, tmp_text);
 			tmp_text[cursor_position] = 0;
-			tmp_width = draw_text(x + 2, y + 2, width - 4, height - 4, tmp_text, text_color, fontmap, window);
+			tmp_width = draw_text(x, y, text_drawing_offset, 0, width, height, tmp_text, text_color, fontmap, window);
 			free(tmp_text);
-			draw_text(x + tmp_width + 2, y + 2, width - 4, height - 4, text + cursor_position, text_color, fontmap, window);
+			draw_text(x + tmp_width, y, 0, 0, width, height, text + cursor_position, text_color, fontmap, window);
 			unsigned int cursor_width = 1;
 			unsigned int cursor_height = get_char_height('A', fontmap);
-			if (cursor_width > width - 4) {
-				cursor_width = width - 4;
+			if (cursor_width > width) {
+				cursor_width = width;
 			}
-			if (cursor_height > height - 4) {
-				cursor_height = height - 4;
+			if (cursor_height > height) {
+				cursor_height = height;
 			}
-			fill_rect(x + tmp_width + 2, y + 2, cursor_width, cursor_height, type_spec->text_color, window);
+			fill_rect(x + tmp_width, y, cursor_width, cursor_height, type_spec->text_color, window);
 		} else {
-			draw_text(x + 2, y + 2, width - 4, height - 4, text, text_color, fontmap, window);
+			draw_text(x, y, text_drawing_offset, 0, width, height, text, text_color, fontmap, window);
 		}
 	}
 	return;
@@ -114,7 +187,7 @@ unsigned int textbox_event_move(int x, int y, XEvent* event, struct MTK_WinEleme
 	return redraw_required;
 }
 unsigned int textbox_event_button(int state, unsigned int button, int x, int y, XEvent* event, struct MTK_WinElement* element, struct MTK_WinBase* window) {
-	printf("tbstate: %d\n", state);
+	//printf("tbstate: %d\n", state);
 	return 0;
 }
 void textbox_event_key(int state, int keycode, XEvent* event, struct MTK_WinElement* element, struct MTK_WinBase* window) {
@@ -137,7 +210,7 @@ void textbox_event_key(int state, int keycode, XEvent* event, struct MTK_WinElem
 	if (keysym == XK_BackSpace) {
 		if (textbox_type_spec_ptr->cursor_position > 0) {
 			cdelstr(&(textbox_type_spec_ptr->text), textbox_type_spec_ptr->cursor_position, -1);
-			textbox_type_spec_ptr->cursor_position--;
+			move_textbox_cursor(element, -1);
 		}
 		reset_the_cursor(window);
 		draw_element(element, window);
@@ -151,6 +224,7 @@ void textbox_event_key(int state, int keycode, XEvent* event, struct MTK_WinElem
 	}
 	if (keysym == XK_Delete) {
 		cdelstr(&(textbox_type_spec_ptr->text), textbox_type_spec_ptr->cursor_position, 1);
+		move_textbox_cursor(element, 0);
 		reset_the_cursor(window);
 		draw_element(element, window);
 		draw_bm(	element->_internal_computed_xoffset, \
@@ -162,9 +236,7 @@ void textbox_event_key(int state, int keycode, XEvent* event, struct MTK_WinElem
 		//draw_bm(0, 0, window->width, window->height, window);
 	}
 	if (keysym == XK_Left) {
-		if (textbox_type_spec_ptr->cursor_position > 0) {
-			textbox_type_spec_ptr->cursor_position--;
-		}
+		move_textbox_cursor(element, -1);
 		reset_the_cursor(window);
 		draw_element(element, window);
 		draw_bm(	element->_internal_computed_xoffset, \
@@ -176,9 +248,7 @@ void textbox_event_key(int state, int keycode, XEvent* event, struct MTK_WinElem
 		//draw_bm(0, 0, window->width, window->height, window);
 	}
 	if (keysym == XK_Right) {
-		if (textbox_type_spec_ptr->cursor_position + 1 < cstrlen(textbox_type_spec_ptr->text)) {
-			textbox_type_spec_ptr->cursor_position++;
-		}
+		move_textbox_cursor(element, +1);
 		reset_the_cursor(window);
 		draw_element(element, window);
 		draw_bm(	element->_internal_computed_xoffset, \
@@ -200,7 +270,7 @@ void textbox_event_key(int state, int keycode, XEvent* event, struct MTK_WinElem
 	if (keysym >= 0x20 && keysym < 0x7F) {
 		payload[0] = keysym;
 		cinsstr(payload, &(textbox_type_spec_ptr->text), textbox_type_spec_ptr->cursor_position);
-		textbox_type_spec_ptr->cursor_position++;
+		move_textbox_cursor(element, +1);
 		reset_the_cursor(window);
 		draw_element(element, window);
 		draw_bm(	element->_internal_computed_xoffset, \
@@ -213,7 +283,7 @@ void textbox_event_key(int state, int keycode, XEvent* event, struct MTK_WinElem
 	} else if((keysym_num >= 0xffaa && keysym_num <= 0xffb9) || keysym_num == 0xffbd) {
 		payload[0] = keysym_num - 0xff80;
 		cinsstr(payload, &(textbox_type_spec_ptr->text), textbox_type_spec_ptr->cursor_position);
-		textbox_type_spec_ptr->cursor_position++;
+		move_textbox_cursor(element, +1);
 		reset_the_cursor(window);
 		draw_element(element, window);
 		draw_bm(	element->_internal_computed_xoffset, \
