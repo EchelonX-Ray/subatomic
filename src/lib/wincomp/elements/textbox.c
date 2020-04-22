@@ -1,6 +1,7 @@
 #include "./textbox.h"
 #include "./../drawing.h"
 #include "./../text.h"
+#include "./../input/mouse.h"
 #include "./../../toolbox/cstr_manip.h"
 #include <stdlib.h>
 #include <X11/cursorfont.h>
@@ -271,18 +272,159 @@ unsigned int textbox_leave(int x, int y, XEvent* event, struct MTK_WinElement* e
 }
 unsigned int textbox_event_move(int x, int y, XEvent* event, struct MTK_WinElement* element, struct MTK_WinBase* window) {
 	unsigned int redraw_required;
+	struct EL_textbox_t *type_spec;
 	redraw_required = 0;
+	type_spec = element->type_spec;
 #ifndef DEVEL_STRIP_MCURSOR
 	if (window->_internal_cursor_index != CS_Text) {
 		window->_internal_cursor_index = CS_Text;
 		XDefineCursor(window->dis, window->win, window->_internal_cursor[CS_Text]);
 	}
 #endif
+	if (window->_internal_mouse_state.mouse_state == MS_DOWN) {
+		// The pointer has moved and is button-[TODO]-down, but the location could be anywhere, including outside of the window.
+		// Use it's location to determine a new text cursor position and set it.
+		
+		// Declare local-scope variables
+		signed int x_pos;
+		unsigned int i;
+		
+		// We need to determine where the textbox is starting the lodgical drawing of it's text
+		x_pos = 2 + element->_internal_computed_xoffset - type_spec->text_drawing_offset;
+		
+		// Do this because the starting x-position where the text is drawn inside the 
+		// textbox changes by 1 pixel depending on if the text_drawing_offset is non-zero
+		if (type_spec->text_drawing_offset) {
+			x_pos -= 1;
+		}
+		
+		// Find the charactor that crosses the pointer's x coordinate
+		i = 0;
+		while(x_pos < x && type_spec->text[i] != 0) {
+			x_pos += get_char_width(type_spec->text[i], type_spec->fontmap);
+			i++;
+		}
+		
+		// Verify that the loop ran at least one time
+		if (i) {
+			if (x_pos < x) {
+				// The while loop ran out of charactors before crossing this threashold, set the cursor to the end of the text
+				type_spec->cursor_position = cstrlen(type_spec->text) - 1;
+			} else {
+				// Determine if the pointer is on the left or right side of the character
+				i--;
+				x_pos -= get_char_width(type_spec->text[i], type_spec->fontmap) / 2;
+				if (x < x_pos) {
+					// The pointer is on the left side of this charactor.  The cursor should be set before this charactor.
+					type_spec->cursor_position = i;
+				} else {
+					// The pointer is on the right side of this charactor.  The cursor should be set after this charactor.
+					type_spec->cursor_position = i + 1;
+				}
+			}
+		} else {
+			// If the loop didn't run, ether:
+			//  - There is no text content
+			// OR
+			//  - The pointer's x coordinate is at or before the start of the text
+			// Ether way, the cursor position should be set to the start of the text
+			type_spec->cursor_position = 0;
+		}
+		
+		draw_textbox(element, window); // Redraw the element to the bitmap
+		redraw_required |= 0x1; // Set the bit flags to indicate that the region of the bitmap occupied by this textbox should be redrawn to the screen.
+	}
 	return redraw_required;
 }
-unsigned int textbox_event_button(int state, unsigned int button, int x, int y, XEvent* event, struct MTK_WinElement* element, struct MTK_WinBase* window) {
-	//printf("tbstate: %d\n", state);
-	return 0;
+unsigned int textbox_event_button(unsigned int state, unsigned int button, signed int x, signed int y, XEvent* event, struct MTK_WinElement* element, struct MTK_WinBase* window) {
+	// Declare function-scope variables
+	unsigned int redraw_required;
+	struct EL_textbox_t *type_spec;
+	redraw_required = 0; // Zero the bits of this variable
+	type_spec = element->type_spec; // Get the element's type-specific values
+	
+	if (button == MOUSE_BTN_LEFT) {
+		if (state == MS_DOWN) {
+			if (  x >= element->_internal_computed_xoffset && 
+			      x  < element->_internal_computed_xoffset + element->_internal_computed_width && 
+			      y >= element->_internal_computed_yoffset && 
+			      y  < element->_internal_computed_yoffset + element->_internal_computed_height  ) {
+				// The pointer is button-left-down inside the textbox.
+				// Use it's location to determine a new text cursor_position and set it.
+				// Also use it's location to determine a new text cursor_selection_base_position and set it.
+				
+				// Declare local-scope variables
+				signed int x_pos;
+				unsigned int i;
+				
+				// Is the textbox currently in focus?
+				if (element == window->focused_element) {
+					// If so, we need to determine where the textbox is starting the lodgical drawing of it's text
+					x_pos = 2 + element->_internal_computed_xoffset - type_spec->text_drawing_offset;
+					
+					// Do this because the starting x-position where the text is drawn inside the 
+					// textbox changes by 1 pixel depending on if the text_drawing_offset is non-zero
+					if (type_spec->text_drawing_offset) {
+						x_pos -= 1;
+					}
+				} else {
+					// If not, the textbox will default to drawing text at 2 pixels + it's x corrdinate position
+					// The textbox should also be set in-focus
+					x_pos = 2 + element->_internal_computed_xoffset;
+					window->focused_element = element;
+				}
+				
+				// Find the charactor that crosses the pointer's x coordinate
+				i = 0;
+				while(x_pos < x && type_spec->text[i] != 0) {
+					x_pos += get_char_width(type_spec->text[i], type_spec->fontmap);
+					i++;
+				}
+				
+				// Verify that the loop ran at least one time
+				if (i) {
+					if (x_pos < x) {
+						// The while loop ran out of charactors before crossing this threashold, set the cursor to the end of the text
+						type_spec->cursor_position = cstrlen(type_spec->text) - 1;
+						type_spec->cursor_selection_base_position = cstrlen(type_spec->text) - 1;
+					} else {
+						// Determine if the pointer is on the left or right side of the character
+						i--;
+						x_pos -= get_char_width(type_spec->text[i], type_spec->fontmap) / 2;
+						if (x < x_pos) {
+							// The pointer is on the left side of this charactor.  The cursor should be set before this charactor.
+							type_spec->cursor_position = i;
+							type_spec->cursor_selection_base_position = i;
+						} else {
+							// The pointer is on the right side of this charactor.  The cursor should be set after this charactor.
+							type_spec->cursor_position = i + 1;
+							type_spec->cursor_selection_base_position = i + 1;
+						}
+					}
+				} else {
+					// If the loop didn't run, ether:
+					//  - There is no text content
+					// OR
+					//  - The pointer's x coordinate is at or before the start of the text
+					// Ether way, the cursor position should be set to the start of the text
+					type_spec->cursor_position = 0;
+					type_spec->cursor_selection_base_position = 0;
+				}
+				
+				stop_the_cursor(window, 1); // Stop the cursor blink loop so that the cursor is always displayed while the mouse button is down.
+				
+				draw_textbox(element, window); // Redraw the element to the bitmap
+				redraw_required |= 0x1; // Set the bit flags to indicate that the region of the bitmap occupied by this textbox should be redrawn to the screen.
+			}
+		} else if (state == MS_UP) {
+			// The pointer is button-left-up, but it's location could be anywhere, including outside of the window.
+			start_the_cursor(window, 1); // Restart the cursor blink loop.
+			
+			draw_textbox(element, window); // Redraw the element to the bitmap
+			redraw_required |= 0x1; // Set the bit flags to indicate that the region of the bitmap occupied by this textbox should be redrawn to the screen.
+		}
+	}
+	return redraw_required;
 }
 void textbox_event_key(int state, int keycode, XEvent* event, struct MTK_WinElement* element, struct MTK_WinBase* window) {
 	KeySym keysym;
@@ -302,11 +444,19 @@ void textbox_event_key(int state, int keycode, XEvent* event, struct MTK_WinElem
 	struct EL_textbox_t *textbox_type_spec_ptr;
 	textbox_type_spec_ptr = (struct EL_textbox_t*)window->focused_element->type_spec;
 	if (keysym == XK_BackSpace) {
-		if (textbox_type_spec_ptr->cursor_position) {
+		if (textbox_type_spec_ptr->cursor_position != textbox_type_spec_ptr->cursor_selection_base_position) {
+			if (textbox_type_spec_ptr->cursor_position > textbox_type_spec_ptr->cursor_selection_base_position) {
+				cdelstr(&(textbox_type_spec_ptr->text), textbox_type_spec_ptr->cursor_position, textbox_type_spec_ptr->cursor_selection_base_position - textbox_type_spec_ptr->cursor_position);
+				move_textbox_cursor(element, textbox_type_spec_ptr->cursor_selection_base_position - textbox_type_spec_ptr->cursor_position, 0);
+			} else {
+				cdelstr(&(textbox_type_spec_ptr->text), textbox_type_spec_ptr->cursor_position, textbox_type_spec_ptr->cursor_selection_base_position - textbox_type_spec_ptr->cursor_position);
+				move_textbox_cursor(element, 0, 0); // Call this even though the cursor is not moving because it will adjust the display offsets if necessary
+			}
+		} else {
 			cdelstr(&(textbox_type_spec_ptr->text), textbox_type_spec_ptr->cursor_position, -1);
 			move_textbox_cursor(element, -1, 0);
 		}
-		reset_the_cursor(window);
+		reset_the_cursor(window, 1);
 		draw_element(element, window);
 		draw_bm(	element->_internal_computed_xoffset, \
 					element->_internal_computed_yoffset, \
@@ -317,9 +467,19 @@ void textbox_event_key(int state, int keycode, XEvent* event, struct MTK_WinElem
 		//draw_bm(0, 0, window->width, window->height, window);
 	}
 	if (keysym == XK_Delete) {
-		cdelstr(&(textbox_type_spec_ptr->text), textbox_type_spec_ptr->cursor_position, 1);
-		move_textbox_cursor(element, 0, 0); // Call this even though the cursor is not moving because it will adjust the display offsets if necessary
-		reset_the_cursor(window);
+		if (textbox_type_spec_ptr->cursor_position != textbox_type_spec_ptr->cursor_selection_base_position) {
+			if (textbox_type_spec_ptr->cursor_position > textbox_type_spec_ptr->cursor_selection_base_position) {
+				cdelstr(&(textbox_type_spec_ptr->text), textbox_type_spec_ptr->cursor_position, textbox_type_spec_ptr->cursor_selection_base_position - textbox_type_spec_ptr->cursor_position);
+				move_textbox_cursor(element, textbox_type_spec_ptr->cursor_selection_base_position - textbox_type_spec_ptr->cursor_position, 0);
+			} else {
+				cdelstr(&(textbox_type_spec_ptr->text), textbox_type_spec_ptr->cursor_position, textbox_type_spec_ptr->cursor_selection_base_position - textbox_type_spec_ptr->cursor_position);
+				move_textbox_cursor(element, 0, 0); // Call this even though the cursor is not moving because it will adjust the display offsets if necessary
+			}
+		} else {
+			cdelstr(&(textbox_type_spec_ptr->text), textbox_type_spec_ptr->cursor_position, 1);
+			move_textbox_cursor(element, 0, 0); // Call this even though the cursor is not moving because it will adjust the display offsets if necessary
+		}
+		reset_the_cursor(window, 1);
 		draw_element(element, window);
 		draw_bm(	element->_internal_computed_xoffset, \
 					element->_internal_computed_yoffset, \
@@ -343,7 +503,7 @@ void textbox_event_key(int state, int keycode, XEvent* event, struct MTK_WinElem
 				move_textbox_cursor(element, -1, 0);
 			}
 		}
-		reset_the_cursor(window);
+		reset_the_cursor(window, 1);
 		draw_element(element, window);
 		draw_bm(	element->_internal_computed_xoffset, \
 					element->_internal_computed_yoffset, \
@@ -367,7 +527,7 @@ void textbox_event_key(int state, int keycode, XEvent* event, struct MTK_WinElem
 				move_textbox_cursor(element, +1, 0);
 			}
 		}
-		reset_the_cursor(window);
+		reset_the_cursor(window, 1);
 		draw_element(element, window);
 		draw_bm(	element->_internal_computed_xoffset, \
 					element->_internal_computed_yoffset, \
@@ -389,7 +549,7 @@ void textbox_event_key(int state, int keycode, XEvent* event, struct MTK_WinElem
 		payload[0] = keysym;
 		cinsstr(payload, &(textbox_type_spec_ptr->text), textbox_type_spec_ptr->cursor_position);
 		move_textbox_cursor(element, +1, 0);
-		reset_the_cursor(window);
+		reset_the_cursor(window, 1);
 		draw_element(element, window);
 		draw_bm(	element->_internal_computed_xoffset, \
 					element->_internal_computed_yoffset, \
@@ -402,7 +562,7 @@ void textbox_event_key(int state, int keycode, XEvent* event, struct MTK_WinElem
 		payload[0] = keysym_num - 0xff80;
 		cinsstr(payload, &(textbox_type_spec_ptr->text), textbox_type_spec_ptr->cursor_position);
 		move_textbox_cursor(element, +1, 0);
-		reset_the_cursor(window);
+		reset_the_cursor(window, 1);
 		draw_element(element, window);
 		draw_bm(	element->_internal_computed_xoffset, \
 					element->_internal_computed_yoffset, \

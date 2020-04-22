@@ -3,15 +3,26 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-void reset_the_cursor(struct MTK_WinBase *window){
+void start_the_cursor(struct MTK_WinBase *window, unsigned int blink_state) {
+	window->cursor_blink = blink_state;
+	pthread_create(window->thread.thread, 0, blink_the_cursor, window);
+	return;
+}
+void stop_the_cursor(struct MTK_WinBase *window, unsigned int blink_state) {
 	pthread_cancel(*(window->thread.thread));
 	pthread_join(*(window->thread.thread), 0);
-	window->cursor_blink = 1;
+	window->cursor_blink = blink_state;
+	return;
+}
+void reset_the_cursor(struct MTK_WinBase *window, unsigned int blink_state) {
+	pthread_cancel(*(window->thread.thread));
+	pthread_join(*(window->thread.thread), 0);
+	window->cursor_blink = blink_state;
 	pthread_create(window->thread.thread, 0, blink_the_cursor, window);
 	return;
 }
 
-void* blink_the_cursor(void* param_ptr){
+void* blink_the_cursor(void* param_ptr) {
 	struct MTK_WinBase *window;
 	pthread_mutex_t *lock;
 	unsigned int millisec_increment;
@@ -41,7 +52,7 @@ void* blink_the_cursor(void* param_ptr){
 	return 0;
 }
 
-void set_pixel_element_map(signed int x, signed int y, unsigned int width, unsigned int height, struct MTK_WinBase *window, struct MTK_WinElement *element){
+void set_pixel_element_map(signed int x, signed int y, unsigned int width, unsigned int height, struct MTK_WinBase *window, struct MTK_WinElement *element) {
 	int i = x;
 	width += x;
 	height += y;
@@ -83,7 +94,7 @@ unsigned int is_element_already_in_chainlist(struct MTK_WinElement *element, str
 	}
 	return 0;
 }
-unsigned int get_chain_index(struct MTK_WinElement *element, struct MTK_WinEl_ChainList *chainlist){
+unsigned int get_chain_index(struct MTK_WinElement *element, struct MTK_WinEl_ChainList *chainlist) {
 	unsigned int i;
 	unsigned int j;
 	i = 0;

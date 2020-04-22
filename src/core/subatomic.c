@@ -70,12 +70,10 @@ int main(int argc, char *argv[]) {
 	signed int poll_ret;
 	
 	// Start the Thread
-	pthread_create(window.thread.thread, 0, blink_the_cursor, &window);
+	start_the_cursor(&window, 1);
 	
 	// Begin The Event Loop
 	XEvent event;
-	int i;
-	int count;
 	while (window.loop_running > 0) {
 		pthread_mutex_unlock(window.thread.lock);
 		poll_ret = poll(fds, 2, 1000); // Wait for Pipe Notification or Timeout after 1000 milliseconds
@@ -84,12 +82,9 @@ int main(int argc, char *argv[]) {
 			window.loop_running = 0;
 		} else if (poll_ret > 0) { // Pipe Notification Received
 			if ((fds[0].revents & POLLIN) > 0) { // Xlib Pipe Notification Received
-				count = XEventsQueued(window.dis, QueuedAfterFlush);
-				i = 0;
-				while (i < count) {
+				while(XPending(window.dis) > 0) {
 					XNextEvent(window.dis, &event);
 					event_handler(&window, &event);
-					i++;
 				}
 			}
 			if ((fds[1].revents & POLLIN) > 0) { // External Pipe Notification Received
@@ -113,8 +108,7 @@ int main(int argc, char *argv[]) {
 	
 	// Rejoin the threads
 	pthread_mutex_unlock(window.thread.lock);
-	pthread_cancel(*(window.thread.thread));
-	pthread_join(*(window.thread.thread), 0);
+	stop_the_cursor(&window, 0);
 	
 	// Close the opened file descriptors
 	close(pipefd_pair[0]);
