@@ -17,7 +17,7 @@ struct EL_textbox_t {
 };
 */
 
-void move_textbox_cursor(struct MTK_WinElement *element, signed int offset) {
+void move_textbox_cursor(struct MTK_WinElement *element, signed int offset, unsigned int dont_move_sel_pos) {
 	if (element == 0) { // Probably unnecessary error checking / Consider removing
 		return;
 	}
@@ -43,8 +43,12 @@ void move_textbox_cursor(struct MTK_WinElement *element, signed int offset) {
 	if (cursor_position < text_length) {
 		// Move the cursor
 		type_spec->cursor_position = cursor_position;
+		if (!dont_move_sel_pos) { // Should the selection base position be moved in sync?
+			type_spec->cursor_selection_base_position = cursor_position;
+		}
 		
 		// Does the new cursor position exist outside of the current textbox display window?
+		// If so, adjust the display offset so that the cursor is displayed in the visible textbox
 		char *tmp_text;
 		unsigned int tmp_width_cursor;
 		unsigned int tmp_width_text;
@@ -97,6 +101,7 @@ void draw_textbox(struct MTK_WinElement *element, struct MTK_WinBase *window) {
 	signed int height;
 	unsigned char cursor_blink;
 	unsigned int cursor_position;
+	unsigned int cursor_selection_base_position;
 	unsigned int text_drawing_offset;
 	
 	type_spec = element->type_spec;
@@ -111,6 +116,7 @@ void draw_textbox(struct MTK_WinElement *element, struct MTK_WinBase *window) {
 	border_color = type_spec->border_color;
 	fontmap = type_spec->fontmap;
 	cursor_position = type_spec->cursor_position;
+	cursor_selection_base_position = type_spec->cursor_selection_base_position;
 	text_drawing_offset = type_spec->text_drawing_offset;
 	focus = window->focused_element;
 	cursor_blink = window->cursor_blink;
@@ -124,7 +130,7 @@ void draw_textbox(struct MTK_WinElement *element, struct MTK_WinBase *window) {
 	draw_rect(x, y, width, height, 1, border_color, window);
 	
 	if (width > 4 && height > 4) {
-		if (type_spec->text_drawing_offset > 0) {
+		if (type_spec->text_drawing_offset) {
 			x += 1;
 			width -= 2;
 		} else {
@@ -140,27 +146,115 @@ void draw_textbox(struct MTK_WinElement *element, struct MTK_WinBase *window) {
 			def_text = type_spec->def_text;
 		}
 		draw_text(x, y, 0, 0, width, height, def_text, def_text_color, fontmap, window);
-		if (focus == element && cursor_blink == 1 && cstrlen(text) > cursor_position) {
-			char *tmp_text;
-			unsigned int tmp_width;
-			tmp_text = malloc(sizeof(char) * cstrlen(text));
-			cstrcpy(text, tmp_text);
+		
+		unsigned int cursor_width;
+		unsigned int cursor_height;
+		unsigned int tmp_text_width;
+		unsigned int tmp_width;
+		char *tmp_text;
+		cursor_width = 1;
+		cursor_height = get_char_height('A', fontmap);
+		tmp_width = 0;
+		tmp_text = malloc(sizeof(char) * cstrlen(text));
+		cstrcpy(text, tmp_text);
+		if        (cursor_position > cursor_selection_base_position) {
+			char tmp_char;
+			tmp_char = tmp_text[cursor_selection_base_position];
 			tmp_text[cursor_position] = 0;
-			tmp_width = draw_text(x, y, text_drawing_offset, 0, width, height, tmp_text, text_color, fontmap, window);
-			free(tmp_text);
-			draw_text(x + tmp_width, y, 0, 0, width, height, text + cursor_position, text_color, fontmap, window);
-			unsigned int cursor_width = 1;
-			unsigned int cursor_height = get_char_height('A', fontmap);
-			if (cursor_width > width) {
-				cursor_width = width;
+			tmp_text[cursor_selection_base_position] = 0;
+			tmp_width += draw_text(x, y, text_drawing_offset, 0, width, height, tmp_text, text_color, fontmap, window);
+			tmp_text_width = get_text_width(tmp_text, fontmap);
+			if (tmp_text_width > text_drawing_offset) {
+				text_drawing_offset = 0;
+			} else {
+				text_drawing_offset -= tmp_text_width;
 			}
-			if (cursor_height > height) {
-				cursor_height = height;
+			tmp_text[cursor_selection_base_position] = tmp_char;
+			tmp_text_width = get_text_width(tmp_text + cursor_selection_base_position, fontmap);
+			if (text_drawing_offset < tmp_text_width) {
+				if (x + tmp_width < x + width && y < y + height) {
+					if (x + tmp_width + (tmp_text_width - text_drawing_offset) > x + tmp_width + width) {
+						fill_rect(x + tmp_width, y, width - (x + tmp_width), cursor_height, (bgcolor & 0xFF000000) | (~bgcolor & 0x00FFFFFF), window);
+					} else {
+						fill_rect(x + tmp_width, y, tmp_text_width - text_drawing_offset, cursor_height, (bgcolor & 0xFF000000) | (~bgcolor & 0x00FFFFFF), window);
+					}
+				}
 			}
-			fill_rect(x + tmp_width, y, cursor_width, cursor_height, type_spec->text_color, window);
+			tmp_width += draw_text(x + tmp_width, y, text_drawing_offset, 0, width, height, tmp_text + cursor_selection_base_position, (text_color & 0xFF000000) | (~text_color & 0x00FFFFFF), fontmap, window);
+			if (tmp_text_width > text_drawing_offset) {
+				text_drawing_offset = 0;
+			} else {
+				text_drawing_offset -= tmp_text_width;
+			}
+			if (focus == element && cursor_blink == 1) {
+				if (cursor_width > width) {
+					cursor_width = width;
+				}
+				if (cursor_height > height) {
+					cursor_height = height;
+				}
+				fill_rect(x + tmp_width, y, cursor_width, cursor_height, type_spec->text_color, window);
+			}
+			draw_text(x + tmp_width, y, text_drawing_offset, 0, width, height, text + cursor_position, text_color, fontmap, window);
+		} else if (cursor_position < cursor_selection_base_position) {
+			char tmp_char;
+			unsigned int tmp_text_width;
+			unsigned int tmp_width2;
+			tmp_char = tmp_text[cursor_position];
+			tmp_text[cursor_position] = 0;
+			tmp_text[cursor_selection_base_position] = 0;
+			tmp_width += draw_text(x, y, text_drawing_offset, 0, width, height, tmp_text, text_color, fontmap, window);
+			tmp_text_width = get_text_width(tmp_text, fontmap);
+			if (tmp_text_width > text_drawing_offset) {
+				text_drawing_offset = 0;
+			} else {
+				text_drawing_offset -= tmp_text_width;
+			}
+			tmp_text[cursor_position] = tmp_char;
+			tmp_text_width = get_text_width(tmp_text + cursor_position, fontmap);
+			if (text_drawing_offset < tmp_text_width) {
+				if (x + tmp_width < x + width && y < y + height) {
+					if (x + tmp_width + (tmp_text_width - text_drawing_offset) > x + tmp_width + width) {
+						fill_rect(x + tmp_width, y, width - (x + tmp_width), cursor_height, (bgcolor & 0xFF000000) | (~bgcolor & 0x00FFFFFF), window);
+					} else {
+						fill_rect(x + tmp_width, y, tmp_text_width - text_drawing_offset, cursor_height, (bgcolor & 0xFF000000) | (~bgcolor & 0x00FFFFFF), window);
+					}
+				}
+			}
+			tmp_width2 = tmp_width;
+			tmp_width += draw_text(x + tmp_width, y, text_drawing_offset, 0, width, height, tmp_text + cursor_position, (text_color & 0xFF000000) | (~text_color & 0x00FFFFFF), fontmap, window);
+			if (focus == element && cursor_blink == 1) {
+				if (cursor_width > width) {
+					cursor_width = width;
+				}
+				if (cursor_height > height) {
+					cursor_height = height;
+				}
+				fill_rect(x + tmp_width2, y, cursor_width, cursor_height, ((type_spec->text_color) & 0xFF000000) | (~(type_spec->text_color) & 0x00FFFFFF), window);
+			}
+			if (tmp_text_width > text_drawing_offset) {
+				text_drawing_offset = 0;
+			} else {
+				text_drawing_offset -= tmp_text_width;
+			}
+			cursor_position = cursor_selection_base_position;
+			draw_text(x + tmp_width, y, text_drawing_offset, 0, width, height, text + cursor_position, text_color, fontmap, window);
 		} else {
-			draw_text(x, y, text_drawing_offset, 0, width, height, text, text_color, fontmap, window);
+			tmp_text[cursor_position] = 0;
+			tmp_width += draw_text(x, y, text_drawing_offset, 0, width, height, tmp_text, text_color, fontmap, window);
+			text_drawing_offset = 0;
+			draw_text(x + tmp_width, y, text_drawing_offset, 0, width, height, text + cursor_position, text_color, fontmap, window);
+			if (focus == element && cursor_blink == 1) {
+				if (cursor_width > width) {
+					cursor_width = width;
+				}
+				if (cursor_height > height) {
+					cursor_height = height;
+				}
+				fill_rect(x + tmp_width, y, cursor_width, cursor_height, type_spec->text_color, window);
+			}
 		}
+		free(tmp_text);
 	}
 	return;
 }
@@ -199,7 +293,7 @@ void textbox_event_key(int state, int keycode, XEvent* event, struct MTK_WinElem
 	keysym = XkbKeycodeToKeysym(window->dis, keycode, 0, event->xkey.state & ShiftMask);
 	num_mask = 0;
 	num_mask |= event->xkey.state & ShiftMask;
-	if ((event->xkey.state & Mod2Mask) > 0) {
+	if (event->xkey.state & Mod2Mask) {
 		num_mask ^= ShiftMask;
 	}
 	keysym_num = XkbKeycodeToKeysym(window->dis, keycode, 0, num_mask);
@@ -208,9 +302,9 @@ void textbox_event_key(int state, int keycode, XEvent* event, struct MTK_WinElem
 	struct EL_textbox_t *textbox_type_spec_ptr;
 	textbox_type_spec_ptr = (struct EL_textbox_t*)window->focused_element->type_spec;
 	if (keysym == XK_BackSpace) {
-		if (textbox_type_spec_ptr->cursor_position > 0) {
+		if (textbox_type_spec_ptr->cursor_position) {
 			cdelstr(&(textbox_type_spec_ptr->text), textbox_type_spec_ptr->cursor_position, -1);
-			move_textbox_cursor(element, -1);
+			move_textbox_cursor(element, -1, 0);
 		}
 		reset_the_cursor(window);
 		draw_element(element, window);
@@ -224,7 +318,7 @@ void textbox_event_key(int state, int keycode, XEvent* event, struct MTK_WinElem
 	}
 	if (keysym == XK_Delete) {
 		cdelstr(&(textbox_type_spec_ptr->text), textbox_type_spec_ptr->cursor_position, 1);
-		move_textbox_cursor(element, 0);
+		move_textbox_cursor(element, 0, 0); // Call this even though the cursor is not moving because it will adjust the display offsets if necessary
 		reset_the_cursor(window);
 		draw_element(element, window);
 		draw_bm(	element->_internal_computed_xoffset, \
@@ -236,7 +330,19 @@ void textbox_event_key(int state, int keycode, XEvent* event, struct MTK_WinElem
 		//draw_bm(0, 0, window->width, window->height, window);
 	}
 	if (keysym == XK_Left) {
-		move_textbox_cursor(element, -1);
+		if (event->xkey.state & ShiftMask) {
+			move_textbox_cursor(element, -1, 1);
+		} else {
+			if (textbox_type_spec_ptr->cursor_selection_base_position != textbox_type_spec_ptr->cursor_position) {
+				if (textbox_type_spec_ptr->cursor_selection_base_position > textbox_type_spec_ptr->cursor_position) {
+					move_textbox_cursor(element, 0, 0);
+				} else {
+					move_textbox_cursor(element, textbox_type_spec_ptr->cursor_selection_base_position - textbox_type_spec_ptr->cursor_position, 0);
+				}
+			} else {
+				move_textbox_cursor(element, -1, 0);
+			}
+		}
 		reset_the_cursor(window);
 		draw_element(element, window);
 		draw_bm(	element->_internal_computed_xoffset, \
@@ -248,7 +354,19 @@ void textbox_event_key(int state, int keycode, XEvent* event, struct MTK_WinElem
 		//draw_bm(0, 0, window->width, window->height, window);
 	}
 	if (keysym == XK_Right) {
-		move_textbox_cursor(element, +1);
+		if (event->xkey.state & ShiftMask) {
+			move_textbox_cursor(element, +1, 1);
+		} else {
+			if (textbox_type_spec_ptr->cursor_selection_base_position != textbox_type_spec_ptr->cursor_position) {
+				if (textbox_type_spec_ptr->cursor_selection_base_position > textbox_type_spec_ptr->cursor_position) {
+					move_textbox_cursor(element, textbox_type_spec_ptr->cursor_selection_base_position - textbox_type_spec_ptr->cursor_position, 0);
+				} else {
+					move_textbox_cursor(element, 0, 0);
+				}
+			} else {
+				move_textbox_cursor(element, +1, 0);
+			}
+		}
 		reset_the_cursor(window);
 		draw_element(element, window);
 		draw_bm(	element->_internal_computed_xoffset, \
@@ -270,7 +388,7 @@ void textbox_event_key(int state, int keycode, XEvent* event, struct MTK_WinElem
 	if (keysym >= 0x20 && keysym < 0x7F) {
 		payload[0] = keysym;
 		cinsstr(payload, &(textbox_type_spec_ptr->text), textbox_type_spec_ptr->cursor_position);
-		move_textbox_cursor(element, +1);
+		move_textbox_cursor(element, +1, 0);
 		reset_the_cursor(window);
 		draw_element(element, window);
 		draw_bm(	element->_internal_computed_xoffset, \
@@ -283,7 +401,7 @@ void textbox_event_key(int state, int keycode, XEvent* event, struct MTK_WinElem
 	} else if((keysym_num >= 0xffaa && keysym_num <= 0xffb9) || keysym_num == 0xffbd) {
 		payload[0] = keysym_num - 0xff80;
 		cinsstr(payload, &(textbox_type_spec_ptr->text), textbox_type_spec_ptr->cursor_position);
-		move_textbox_cursor(element, +1);
+		move_textbox_cursor(element, +1, 0);
 		reset_the_cursor(window);
 		draw_element(element, window);
 		draw_bm(	element->_internal_computed_xoffset, \

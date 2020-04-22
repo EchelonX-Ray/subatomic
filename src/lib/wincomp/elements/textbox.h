@@ -11,6 +11,7 @@ struct EL_textbox_t {
 	char *text;
 	char *def_text;
 	unsigned int cursor_position;
+	unsigned int cursor_selection_base_position;
 	unsigned int text_drawing_offset;
 	struct MTK_WinFontMap *fontmap;
 };
