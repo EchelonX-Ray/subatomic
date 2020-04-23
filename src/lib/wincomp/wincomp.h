@@ -9,9 +9,13 @@
 //#include <X11/Xos.h>
 #include <stdint.h>
 #include <stdio.h>
+#include "./input/mouse.h"
 
 //#include <X11/Xatom.h>
 
+// Array length
+#define MTKEvent_Count 6
+// Array indexes
 #define KeyEvent 0
 #define MouseBtnEvent 1
 #define MouseMoveEvent 2
@@ -19,8 +23,7 @@
 #define ExposeEvent 4
 #define CloseEvent 5
 
-#define MTKEvent_Count 6
-
+// Mouse States
 #define MS_UP 2
 #define MS_DOWN 1
 
@@ -35,14 +38,17 @@
 struct MTK_WinMouseStateTracking {
 	struct MTK_WinElement **pixel_element_map;
 	struct MTK_WinElement *previous_mouse_element;
-	unsigned int mouse_moved_while_button_down;
-	unsigned int mouse_state;
+	unsigned int mouse_moved_while_button_down_array[MOUSE_BUTTONS];
+	unsigned int mouse_state_array[MOUSE_BUTTONS];
+	unsigned int *mouse_moved_while_button_down;
+	unsigned int *mouse_state;
 };
 struct MTK_WinThreadReturn {
 };
 struct MTK_WinThreadParam {
 	pthread_t *thread;
 	pthread_mutex_t *lock;
+	unsigned int thread_running;
 	int fd;
 	unsigned int millisec_increment;
 	struct MTK_WinThreadReturn ret_val;

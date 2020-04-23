@@ -5,20 +5,27 @@
 
 void start_the_cursor(struct MTK_WinBase *window, unsigned int blink_state) {
 	window->cursor_blink = blink_state;
-	pthread_create(window->thread.thread, 0, blink_the_cursor, window);
+	if (window->thread.thread_running == 0) {
+		window->thread.thread_running = 1;
+		pthread_create(window->thread.thread, 0, blink_the_cursor, window);
+	}
 	return;
 }
 void stop_the_cursor(struct MTK_WinBase *window, unsigned int blink_state) {
-	pthread_cancel(*(window->thread.thread));
-	pthread_join(*(window->thread.thread), 0);
+	if (window->thread.thread_running == 1) {
+		pthread_cancel(*(window->thread.thread));
+		pthread_join(*(window->thread.thread), 0);
+		window->thread.thread_running = 0;
+	}
 	window->cursor_blink = blink_state;
 	return;
 }
 void reset_the_cursor(struct MTK_WinBase *window, unsigned int blink_state) {
-	pthread_cancel(*(window->thread.thread));
-	pthread_join(*(window->thread.thread), 0);
 	window->cursor_blink = blink_state;
-	pthread_create(window->thread.thread, 0, blink_the_cursor, window);
+	if (window->thread.thread_running == 1) {
+		stop_the_cursor(window, blink_state);
+		start_the_cursor(window, blink_state);
+	}
 	return;
 }
 

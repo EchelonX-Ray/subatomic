@@ -1,6 +1,5 @@
 #include "./wincomp.h"
 #include <X11/cursorfont.h>
-//#include <X11/Xcursor/Xcursor.h>
 #include <unistd.h>
 #include <stdlib.h>
 
@@ -17,19 +16,27 @@ struct MTK_WinMouseStateTracking {
 */
 
 void window_struct_zero(struct MTK_WinBase *window){
+	unsigned int i = 0;
+	
 	window->loop_running = 2;
 	window->ignore_key_repeat = 0;
 	window->_internal_mouse_state.pixel_element_map = 0;
 	window->_internal_mouse_state.previous_mouse_element = 0;
-	window->_internal_mouse_state.mouse_moved_while_button_down = 0;
-	window->_internal_mouse_state.mouse_state = MS_UP;
+	i = 0;
+	while (i < MOUSE_BUTTONS) {
+		window->_internal_mouse_state.mouse_moved_while_button_down_array[i] = 0;
+		window->_internal_mouse_state.mouse_state_array[i] = MS_UP;
+		i++;
+	}
+	window->_internal_mouse_state.mouse_moved_while_button_down = window->_internal_mouse_state.mouse_moved_while_button_down_array - MOUSE_BUTTON_START;
+	window->_internal_mouse_state.mouse_state = window->_internal_mouse_state.mouse_state_array - MOUSE_BUTTON_START;
 	window->cursor_blink = 1;
 	window->root_element = 0;
 	window->focused_element = 0;
 	window->fd = 0;
 	window->_internal_ignore_next_ke = 0;
 	
-	unsigned int i = 0;
+	i = 0;
 	while (i < MTKEvent_Count) {
 		window->event_handles[i] = 0;
 		i++;

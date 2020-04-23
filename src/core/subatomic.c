@@ -58,6 +58,7 @@ int main(int argc, char *argv[]) {
 	window.thread.thread = threads + 0; // Set pointer to thread
 	window.thread.lock = thread_lock + 0; // Set pointer to mutex
 	window.thread.fd = pipefd_pair[1]; // Set transmit file descriptor
+	window.thread.thread_running = 0; // Initialize to zero before the thread is running
 	window.thread.millisec_increment = 1000; // Set cursor blink rate
 	pthread_mutex_init(window.thread.lock, NULL);
 	pthread_mutex_lock(window.thread.lock);

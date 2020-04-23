@@ -66,11 +66,11 @@ void element_mousebutton_event(int state, unsigned int button, int x, int y, XEv
 	}
 	if        (state == MS_DOWN) {
 		window->_internal_mouse_state.previous_mouse_element = element;
-		window->_internal_mouse_state.mouse_state = MS_DOWN;
+		window->_internal_mouse_state.mouse_state[button] = MS_DOWN;
 	} else if (state == MS_UP) {
-		window->_internal_mouse_state.mouse_state = MS_UP;
-		if (window->_internal_mouse_state.mouse_moved_while_button_down == 1) {
-			window->_internal_mouse_state.mouse_moved_while_button_down = 0;
+		window->_internal_mouse_state.mouse_state[button] = MS_UP;
+		if (window->_internal_mouse_state.mouse_moved_while_button_down[button] == 1) {
+			window->_internal_mouse_state.mouse_moved_while_button_down[button] = 0;
 			element_mousemotion_event(x, y, event, window);
 		}
 	}
@@ -97,6 +97,7 @@ void element_mousemotion_event(int x, int y, XEvent* event, struct MTK_WinBase* 
 	}
 	unsigned int element_redraw_required;
 	unsigned int prev_element_redraw_required;
+	unsigned int i;
 	struct MTK_WinElement *element;
 	struct MTK_WinElement *previous_mouse_element;
 	
@@ -109,9 +110,13 @@ void element_mousemotion_event(int x, int y, XEvent* event, struct MTK_WinBase* 
 	previous_mouse_element = window->_internal_mouse_state.previous_mouse_element;
 	element_redraw_required = 0;
 	prev_element_redraw_required = 0;
-	if (window->_internal_mouse_state.mouse_state == MS_DOWN) {
-		window->_internal_mouse_state.mouse_moved_while_button_down = 1;
-		element = previous_mouse_element;
+	i = 0;
+	while (i < MOUSE_BUTTONS) {
+		if (window->_internal_mouse_state.mouse_state_array[i] == MS_DOWN) {
+			window->_internal_mouse_state.mouse_moved_while_button_down_array[i] = 1;
+			element = previous_mouse_element;
+		}
+		i++;
 	}
 	if (element == 0) {
 #ifndef DEVEL_STRIP_MCURSOR
@@ -191,14 +196,6 @@ void event_handler(struct MTK_WinBase *window, XEvent *event) {
 		key_func = window->event_handles[KeyEvent];
 		key_func(1, event->xkey.keycode, event, window);
 		return;
-		
-		/* Disabled for reference
-		if (event.xkey.keycode == 0xFF) {
-			close_x(vals);
-		} else {
-			key_func(2, &event, vals);
-		}
-		*/
 	}
 	if (event->type == KeyRelease && window->event_handles[KeyEvent] != 0) {
 		// If ignore key repeat set, check to see if this is a key repeat 
@@ -225,11 +222,19 @@ void event_handler(struct MTK_WinBase *window, XEvent *event) {
 		return;
 	}
 	if (event->type == ButtonPress && window->event_handles[MouseBtnEvent] != 0) {
+		// Ignore mouse buttons that aren't defined
+		if (event->xbutton.button < MOUSE_BUTTON_START || event->xbutton.button >= MOUSE_BUTTON_START + MOUSE_BUTTONS) {
+			return;
+		}
 		mouse_btn_func = window->event_handles[MouseBtnEvent];
 		mouse_btn_func(MS_DOWN, event->xbutton.button, event->xbutton.x, event->xbutton.y, event, window);
 		return;
 	}
 	if (event->type == ButtonRelease && window->event_handles[MouseBtnEvent] != 0) {
+		// Ignore mouse buttons that aren't defined
+		if (event->xbutton.button < MOUSE_BUTTON_START || event->xbutton.button >= MOUSE_BUTTON_START + MOUSE_BUTTONS) {
+			return;
+		}
 		mouse_btn_func = window->event_handles[MouseBtnEvent];
 		mouse_btn_func(MS_UP, event->xbutton.button, event->xbutton.x, event->xbutton.y, event, window);
 		return;

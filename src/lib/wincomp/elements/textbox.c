@@ -85,6 +85,18 @@ void move_textbox_cursor(struct MTK_WinElement *element, signed int offset, unsi
 	}
 	return;
 }
+void delete_textbox_substr(struct MTK_WinElement *element, unsigned int pos_a, unsigned int pos_b) {
+	struct EL_textbox_t *type_spec;
+	type_spec = element->type_spec;
+	if (pos_a > pos_b) {
+		cdelstr(&(type_spec->text), pos_a, pos_b - pos_a);
+		move_textbox_cursor(element, pos_b - pos_a, 0);
+	} else {
+		cdelstr(&(type_spec->text), pos_a, pos_b - pos_a);
+		move_textbox_cursor(element, 0, 0); // Call this even though the cursor is not moving because it will adjust the display offsets if necessary
+	}
+	return;
+}
 
 void draw_textbox(struct MTK_WinElement *element, struct MTK_WinBase *window) {
 	struct EL_textbox_t *type_spec;
@@ -281,7 +293,7 @@ unsigned int textbox_event_move(int x, int y, XEvent* event, struct MTK_WinEleme
 		XDefineCursor(window->dis, window->win, window->_internal_cursor[CS_Text]);
 	}
 #endif
-	if (window->_internal_mouse_state.mouse_state == MS_DOWN) {
+	if (window->_internal_mouse_state.mouse_state[MOUSE_BTN_LEFT] == MS_DOWN) {
 		// The pointer has moved and is button-[TODO]-down, but the location could be anywhere, including outside of the window.
 		// Use it's location to determine a new text cursor position and set it.
 		
@@ -444,50 +456,24 @@ void textbox_event_key(int state, int keycode, XEvent* event, struct MTK_WinElem
 	struct EL_textbox_t *textbox_type_spec_ptr;
 	textbox_type_spec_ptr = (struct EL_textbox_t*)window->focused_element->type_spec;
 	if (keysym == XK_BackSpace) {
+		// If there is a selection, delete it.  If not, Backspace
 		if (textbox_type_spec_ptr->cursor_position != textbox_type_spec_ptr->cursor_selection_base_position) {
-			if (textbox_type_spec_ptr->cursor_position > textbox_type_spec_ptr->cursor_selection_base_position) {
-				cdelstr(&(textbox_type_spec_ptr->text), textbox_type_spec_ptr->cursor_position, textbox_type_spec_ptr->cursor_selection_base_position - textbox_type_spec_ptr->cursor_position);
-				move_textbox_cursor(element, textbox_type_spec_ptr->cursor_selection_base_position - textbox_type_spec_ptr->cursor_position, 0);
-			} else {
-				cdelstr(&(textbox_type_spec_ptr->text), textbox_type_spec_ptr->cursor_position, textbox_type_spec_ptr->cursor_selection_base_position - textbox_type_spec_ptr->cursor_position);
-				move_textbox_cursor(element, 0, 0); // Call this even though the cursor is not moving because it will adjust the display offsets if necessary
-			}
+			delete_textbox_substr(element, textbox_type_spec_ptr->cursor_position, textbox_type_spec_ptr->cursor_selection_base_position);
 		} else {
 			cdelstr(&(textbox_type_spec_ptr->text), textbox_type_spec_ptr->cursor_position, -1);
 			move_textbox_cursor(element, -1, 0);
 		}
-		reset_the_cursor(window, 1);
-		draw_element(element, window);
-		draw_bm(	element->_internal_computed_xoffset, \
-					element->_internal_computed_yoffset, \
-					element->_internal_computed_width, \
-					element->_internal_computed_height, \
-					window	);
-		//draw_element(window->root_element, window);
-		//draw_bm(0, 0, window->width, window->height, window);
+		goto textbox_update_required; // GOTO to avoid repeating code for redrawing the textbox.
 	}
 	if (keysym == XK_Delete) {
+		// If there is a selection, delete it.  If not, Delete
 		if (textbox_type_spec_ptr->cursor_position != textbox_type_spec_ptr->cursor_selection_base_position) {
-			if (textbox_type_spec_ptr->cursor_position > textbox_type_spec_ptr->cursor_selection_base_position) {
-				cdelstr(&(textbox_type_spec_ptr->text), textbox_type_spec_ptr->cursor_position, textbox_type_spec_ptr->cursor_selection_base_position - textbox_type_spec_ptr->cursor_position);
-				move_textbox_cursor(element, textbox_type_spec_ptr->cursor_selection_base_position - textbox_type_spec_ptr->cursor_position, 0);
-			} else {
-				cdelstr(&(textbox_type_spec_ptr->text), textbox_type_spec_ptr->cursor_position, textbox_type_spec_ptr->cursor_selection_base_position - textbox_type_spec_ptr->cursor_position);
-				move_textbox_cursor(element, 0, 0); // Call this even though the cursor is not moving because it will adjust the display offsets if necessary
-			}
+			delete_textbox_substr(element, textbox_type_spec_ptr->cursor_position, textbox_type_spec_ptr->cursor_selection_base_position);
 		} else {
 			cdelstr(&(textbox_type_spec_ptr->text), textbox_type_spec_ptr->cursor_position, 1);
 			move_textbox_cursor(element, 0, 0); // Call this even though the cursor is not moving because it will adjust the display offsets if necessary
 		}
-		reset_the_cursor(window, 1);
-		draw_element(element, window);
-		draw_bm(	element->_internal_computed_xoffset, \
-					element->_internal_computed_yoffset, \
-					element->_internal_computed_width, \
-					element->_internal_computed_height, \
-					window	);
-		//draw_element(window->root_element, window);
-		//draw_bm(0, 0, window->width, window->height, window);
+		goto textbox_update_required; // GOTO to avoid repeating code for redrawing the textbox.
 	}
 	if (keysym == XK_Left) {
 		if (event->xkey.state & ShiftMask) {
@@ -503,15 +489,7 @@ void textbox_event_key(int state, int keycode, XEvent* event, struct MTK_WinElem
 				move_textbox_cursor(element, -1, 0);
 			}
 		}
-		reset_the_cursor(window, 1);
-		draw_element(element, window);
-		draw_bm(	element->_internal_computed_xoffset, \
-					element->_internal_computed_yoffset, \
-					element->_internal_computed_width, \
-					element->_internal_computed_height, \
-					window	);
-		//draw_element(window->root_element, window);
-		//draw_bm(0, 0, window->width, window->height, window);
+		goto textbox_update_required; // GOTO to avoid repeating code for redrawing the textbox.
 	}
 	if (keysym == XK_Right) {
 		if (event->xkey.state & ShiftMask) {
@@ -527,15 +505,7 @@ void textbox_event_key(int state, int keycode, XEvent* event, struct MTK_WinElem
 				move_textbox_cursor(element, +1, 0);
 			}
 		}
-		reset_the_cursor(window, 1);
-		draw_element(element, window);
-		draw_bm(	element->_internal_computed_xoffset, \
-					element->_internal_computed_yoffset, \
-					element->_internal_computed_width, \
-					element->_internal_computed_height, \
-					window	);
-		//draw_element(window->root_element, window);
-		//draw_bm(0, 0, window->width, window->height, window);
+		goto textbox_update_required; // GOTO to avoid repeating code for redrawing the textbox.
 	}
 	if ((event->xkey.state & LockMask) > 0) {
 		XConvertCase(keysym, &keysym_lower, &keysym_upper);
@@ -546,31 +516,35 @@ void textbox_event_key(int state, int keycode, XEvent* event, struct MTK_WinElem
 		}
 	}
 	if (keysym >= 0x20 && keysym < 0x7F) {
+		// Correct by offset the keysym to the ascii text equivalent.  In this case, the offset is 0x0.
 		payload[0] = keysym;
+		
+		goto insert_the_text; // GOTO to avoid repeating code per each possible offset.
+	} else if((keysym_num >= 0xFFAA && keysym_num <= 0xFFB9) || keysym_num == 0xFFBD) {
+		// Correct by offset the keysym to the ascii text equivalent.  In this case, the offset is 0xFF80.
+		payload[0] = keysym_num - 0xFF80;
+		
+		insert_the_text:
+		// If there is a selection, delete it.
+		if (textbox_type_spec_ptr->cursor_selection_base_position != textbox_type_spec_ptr->cursor_position) {
+			delete_textbox_substr(element, textbox_type_spec_ptr->cursor_position, textbox_type_spec_ptr->cursor_selection_base_position);
+		}
+		// Insert the cstr "payload" into the textbox content cstr 
 		cinsstr(payload, &(textbox_type_spec_ptr->text), textbox_type_spec_ptr->cursor_position);
+		// Increment the cursor
 		move_textbox_cursor(element, +1, 0);
+		
+		textbox_update_required:
+		// Reset the cursor blink
 		reset_the_cursor(window, 1);
+		// Redraw the textbox into the buffer
 		draw_element(element, window);
+		// Redraw the buffer to the screen
 		draw_bm(	element->_internal_computed_xoffset, \
 					element->_internal_computed_yoffset, \
 					element->_internal_computed_width, \
 					element->_internal_computed_height, \
 					window	);
-		//draw_element(window->root_element, window);
-		//draw_bm(0, 0, window->width, window->height, window);
-	} else if((keysym_num >= 0xffaa && keysym_num <= 0xffb9) || keysym_num == 0xffbd) {
-		payload[0] = keysym_num - 0xff80;
-		cinsstr(payload, &(textbox_type_spec_ptr->text), textbox_type_spec_ptr->cursor_position);
-		move_textbox_cursor(element, +1, 0);
-		reset_the_cursor(window, 1);
-		draw_element(element, window);
-		draw_bm(	element->_internal_computed_xoffset, \
-					element->_internal_computed_yoffset, \
-					element->_internal_computed_width, \
-					element->_internal_computed_height, \
-					window	);
-		//draw_element(window->root_element, window);
-		//draw_bm(0, 0, window->width, window->height, window);
 	}
 	return;
 }
