@@ -1,7 +1,22 @@
 #!/bin/bash
 
 TEST_FONT_DIR="/usr/share/fonts/dejavu/DejaVuSansMono.ttf"
-CFLAGS="-Wall -std=c99 -pipe -O2 -flto -march=native"
+CFLAGS="-Wall -std=c99 -pipe -O2 -flto -march=native -g"
+#CFLAGS="$CFLAGS -DDEVEL_STRIP_MCURSOR"
+
+get_script_dir() {
+     SOURCE="${BASH_SOURCE[0]}"
+     # While $SOURCE is a symlink, resolve it
+     while [ -h "$SOURCE" ]; do
+          DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+          SOURCE="$( readlink "$SOURCE" )"
+          # If $SOURCE was a relative symlink (so no "/" as prefix, need to resolve it relative to the symlink base directory
+          [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+     done
+     DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+     echo "$DIR"
+}
+cd "$(get_script_dir)"
 
 echo "Create build directory structure"
 mkdir -p "/dev/shm/devel/subatomic/dev_build"
@@ -60,7 +75,7 @@ wait
 echo "Compilation: Complete"
 
 # Link together the element object files
-echo "Link: All & Against X11 + FreeType + XML2 and Produce Finished Executable ./subatomic.out"
+echo "Link: All & Against X11 + FreeType + pThread and Produce Finished Executable ./subatomic.out"
 gcc $CFLAGS -o "./subatomic.out" \
   "./build/lib/wincomp/wincomp.obj" \
   "./build/lib/wincomp/elements.obj" \
@@ -88,4 +103,5 @@ rm -rf "/dev/shm/devel"
 rm -f "./build"
 
 echo "Dev Build Finished"
+
 exit 0

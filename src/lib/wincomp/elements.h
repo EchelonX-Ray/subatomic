@@ -51,10 +51,6 @@ struct MTK_WinElement {
 	signed int _internal_computed_yoffset;
 	signed int _internal_computed_width;
 	signed int _internal_computed_height;
-	
-	//char *text;
-	//uint32_t fgcolor;
-	//uint32_t bgcolor;
 };
 
 struct MTK_WinElAnchor {
