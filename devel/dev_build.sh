@@ -1,8 +1,11 @@
 #!/bin/bash
 
 TEST_FONT_DIR="/usr/share/fonts/dejavu/DejaVuSansMono.ttf"
+
 CFLAGS="-Wall -std=c99 -pipe -O2 -flto -march=native -g"
 #CFLAGS="$CFLAGS -DDEVEL_STRIP_MCURSOR"
+
+LDFLAGS=""
 
 get_script_dir() {
      SOURCE="${BASH_SOURCE[0]}"
@@ -76,7 +79,7 @@ echo "Compilation: Complete"
 
 # Link together the element object files
 echo "Link: Element Objects"
-gcc $CFLAGS -r -o "./build/lib/wincomp/elements/ALL_Elements.obj" \
+ld $LDFLAGS -r -o "./build/subatomic_p1.obj" \
   "./build/lib/wincomp/elements/button.obj" \
   "./build/lib/wincomp/elements/checkbox.obj" \
   "./build/lib/wincomp/elements/container.obj" \
@@ -84,19 +87,17 @@ gcc $CFLAGS -r -o "./build/lib/wincomp/elements/ALL_Elements.obj" \
   "./build/lib/wincomp/elements/ml_textbox.obj" \
   "./build/lib/wincomp/elements/radiobutton.obj" \
   "./build/lib/wincomp/elements/tab.obj" \
-  "./build/lib/wincomp/elements/textbox.obj"
+  "./build/lib/wincomp/elements/textbox.obj" &
 
 echo "Link: All Compiled Objects"
-gcc $CFLAGS -r -o "./build/subatomic_p2.obj" \
+ld $LDFLAGS -r -o "./build/subatomic_p2.obj" \
   "./build/core/subatomic.obj" \
   "./build/core/events.obj" \
   "./build/lib/toolbox/cstr_manip.obj" &
 
-wait
-gcc $CFLAGS -r -o "./build/subatomic_p1.obj" \
+ld $LDFLAGS -r -o "./build/subatomic_p3.obj" \
   "./build/lib/wincomp/wincomp.obj" \
   "./build/lib/wincomp/elements.obj" \
-  "./build/lib/wincomp/elements/ALL_Elements.obj" \
   "./build/lib/wincomp/events.obj" \
   "./build/lib/wincomp/drawing.obj" \
   "./build/lib/wincomp/text.obj" \
@@ -104,9 +105,10 @@ gcc $CFLAGS -r -o "./build/subatomic_p1.obj" \
 
 wait
 echo "Link: Against X11 + FreeType + pThread and Produce Finished Executable ./subatomic.out"
-gcc $CFLAGS -o "./subatomic.out" \
+gcc $CFLAGS $LDFLAGS -o "./subatomic.out" \
   "./build/subatomic_p1.obj" \
   "./build/subatomic_p2.obj" \
+  "./build/subatomic_p3.obj" \
   $(pkg-config --libs x11) \
   $(pkg-config --libs --cflags freetype2) \
   -lpthread
