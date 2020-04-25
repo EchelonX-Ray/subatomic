@@ -1,5 +1,6 @@
 #include "./drawing.h"
 
+// Draw a hollow rectangle to the bitmap buffer
 void draw_rect(unsigned int x, unsigned int y, unsigned int width, unsigned int height, unsigned int thickness, uint32_t color, struct MTK_WinBase *window){
 	unsigned int pixel_x;
 	unsigned int pixel_y;
@@ -57,6 +58,7 @@ void draw_rect(unsigned int x, unsigned int y, unsigned int width, unsigned int 
 	return;
 }
 
+// Draw a filled rectangle to the bitmap buffer
 void fill_rect(unsigned int x, unsigned int y, unsigned int width, unsigned int height, uint32_t color, struct MTK_WinBase *window){
 	unsigned int pixel_x;
 	unsigned int pixel_y;
@@ -109,6 +111,7 @@ void fill_rect(unsigned int x, unsigned int y, unsigned int width, unsigned int 
 	return;
 }
 
+// Draw the bitmap buffer to the screen.  This function allows only a specific rectangular portion of the buffer to be drawn.
 void draw_bm(unsigned int x, unsigned int y, unsigned int width, unsigned int height, struct MTK_WinBase *window){
 	unsigned int pixel_x;
 	unsigned int pixel_y;

@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+// Start the cursor blinking thread
 void start_the_cursor(struct MTK_WinBase *window, unsigned int blink_state) {
 	window->cursor_blink = blink_state;
 	if (window->thread.thread_running == 0) {
@@ -11,6 +12,7 @@ void start_the_cursor(struct MTK_WinBase *window, unsigned int blink_state) {
 	}
 	return;
 }
+// Stop the cursor blinking thread
 void stop_the_cursor(struct MTK_WinBase *window, unsigned int blink_state) {
 	if (window->thread.thread_running == 1) {
 		pthread_cancel(*(window->thread.thread));
@@ -20,6 +22,7 @@ void stop_the_cursor(struct MTK_WinBase *window, unsigned int blink_state) {
 	window->cursor_blink = blink_state;
 	return;
 }
+// Stop and Restart the cursor blinking thread
 void reset_the_cursor(struct MTK_WinBase *window, unsigned int blink_state) {
 	window->cursor_blink = blink_state;
 	if (window->thread.thread_running == 1) {
@@ -28,7 +31,11 @@ void reset_the_cursor(struct MTK_WinBase *window, unsigned int blink_state) {
 	}
 	return;
 }
-
+// Wait for the timeout and then toggle the cursor
+// This is run as a separate thread.  It doesn't loop because 
+// it should be restarted after the event loop notification it 
+// generates, is handled.  This prevents events from backing up 
+// on slow systems.
 void* blink_the_cursor(void* param_ptr) {
 	struct MTK_WinBase *window;
 	pthread_mutex_t *lock;
@@ -51,7 +58,7 @@ void* blink_the_cursor(void* param_ptr) {
 	} else {
 		window->cursor_blink = 1;
 	}
-	write_ret = write(fd, "\x01", 1);
+	write_ret = write(fd, "\x01", 1); // Send a byte of value 0x01 into a pipe.  This will notify the event loop to handle the event.
 	if (write_ret != 1) {
 		window->loop_running = 0;
 	}
@@ -59,6 +66,10 @@ void* blink_the_cursor(void* param_ptr) {
 	return 0;
 }
 
+// The the element that maps to a pixel in the window
+// This is set by each element when they are drawn to the bitmap buffer and 
+// is then used to determine how to handle mouse events per the window coordinates
+// that they occur on.
 void set_pixel_element_map(signed int x, signed int y, unsigned int width, unsigned int height, struct MTK_WinBase *window, struct MTK_WinElement *element) {
 	int i = x;
 	width += x;
@@ -715,8 +726,9 @@ void compute_element_internals(struct MTK_WinBase *window) {
 	return;
 }
 
+// Draw the element to the bitmap buffer and draw any child elements recursively
 void draw_element(struct MTK_WinElement *element, struct MTK_WinBase *window) {
-	// If this is the root element, go ahead and just flush the pixel element map
+	// If this is the root element, go ahead and just reset the pixel element map to all NULL pointers
 	if (element->parent == 0) {
 		set_pixel_element_map(0, 0, window->width, window->height, window, 0);
 	}
