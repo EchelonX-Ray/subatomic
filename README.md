@@ -5,7 +5,7 @@ Read this file for important information on the Subatomic project
 File Structure:
 
 /README.md - This file, where summary documentation is to be provied
-/LICENSE.0BSD.txt – A License under which this software is released.  I retain ownership of the copywrite.
+/LICENSE – The license under which this software is released.  I retain ownership of the copywrite.
 /Contribution_Policy.md – My policy for accepting code contributions to this project
 /devel/ – Development tools
 /src/ – Source Code
