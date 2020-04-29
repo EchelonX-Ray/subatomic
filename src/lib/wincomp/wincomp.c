@@ -72,9 +72,9 @@ void create_window(struct MTK_WinBase *vals){
 	
 	vals->win = XCreateSimpleWindow(vals->dis, vals->root_win, 0, 0, vals->width, vals->height, 5, white, black);
 	
-	//Atom type = XInternAtom((*vals).dis, "_NET_WM_WINDOW_TYPE", False);
-	//Atom value = XInternAtom((*vals).dis, "_NET_WM_WINDOW_TYPE_SPLASH", False);
-	//XChangeProperty((*vals).dis, (*vals).win, type, XA_ATOM, 32, PropModeReplace, (char*)&value, 1);
+	//Atom type = XInternAtom(vals->dis, "_NET_WM_WINDOW_TYPE", False);
+	//Atom value = XInternAtom(vals->dis, "_NET_WM_WINDOW_TYPE_SPLASH", False);
+	//XChangeProperty(vals->dis, vals->win, type, XA_ATOM, 32, PropModeReplace, (char*)&value, 1);
 	
 	XSetStandardProperties(vals->dis, vals->win, vals->title, "icon", None, NULL, 0, NULL);
 	//XFlush((*vals).dis);
@@ -139,7 +139,7 @@ void create_window(struct MTK_WinBase *vals){
 	return;
 }
 
-void free_window(struct MTK_WinBase *window){
+void free_window(struct MTK_WinBase *window) {
 	XUnmapWindow(window->dis, window->win);
 	XFree(window->gc);
 	XDestroyWindow(window->dis, window->win);

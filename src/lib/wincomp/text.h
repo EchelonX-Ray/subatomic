@@ -5,7 +5,23 @@
 #include "./drawing.h"
 #include <stdint.h>
 
+
+struct Working_Text {
+	char *text;
+	unsigned int alloc_unit;
+	unsigned int current_alloc_unit_count;
+	unsigned int current_bytes_used;
+	unsigned int cursor_position;
+	unsigned int cursor_base_sel_position;
+	unsigned char ml;
+};
+
 struct MTK_WinFontCharactorBM {
+	unsigned int adv_width;
+	unsigned int max_width_pad_left;
+	unsigned int max_width_pad_right;
+	unsigned int max_height_pad_top;
+	unsigned int max_height_pad_bottom;
 	unsigned int width;
 	unsigned int height;
 	unsigned char *char_bitmap;
@@ -24,6 +40,7 @@ struct MTK_WinFontPack {
 	unsigned int count;
 	unsigned int max_width;
 	unsigned int max_height;
+	char **files;
 	struct MTK_WinFontMap *font_style;
 };
 

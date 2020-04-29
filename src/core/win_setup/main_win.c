@@ -97,6 +97,9 @@ void setup_main_win_elements(struct MTK_WinElement **element, struct MTK_WinFont
 		uint32_t border_color;
 		char *text;
 		char *def_text;
+		unsigned int alloc_unit;
+		unsigned int current_alloc_unit_count;
+		unsigned int current_bytes_used;
 		unsigned int cursor_position;
 		unsigned int cursor_selection_base_position;
 		unsigned int text_drawing_offset;
@@ -114,7 +117,10 @@ void setup_main_win_elements(struct MTK_WinElement **element, struct MTK_WinFont
 	// Allocate and set the memory for an empty textbox cstr.  
 	// This must be done on the heap because it will be automatically 
 	// freed and reallocated by the wincomp library.
-	textbox__type_spec->text = calloc(1, sizeof(char));
+	textbox__type_spec->alloc_unit = 5;
+	textbox__type_spec->current_alloc_unit_count = 1;
+	textbox__type_spec->current_bytes_used = 1;
+	textbox__type_spec->text = calloc(textbox__type_spec->alloc_unit * textbox__type_spec->current_alloc_unit_count, sizeof(char));
 	textbox__type_spec->def_text = "Default Text"; // Set the Default Text
 	textbox__type_spec->cursor_position = 0; // Initialize the cursor position to 0.
 	textbox__type_spec->cursor_selection_base_position = textbox__type_spec->cursor_position; // Initialize the selection base cursor position to match the cursor position.

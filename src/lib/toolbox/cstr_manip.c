@@ -1,6 +1,55 @@
 #include "./cstr_manip.h"
 #include <stdlib.h>
 
+// Delete content from cstr at offset offset and of length, length.
+// Memory will not be resized by this function.
+// If offset is negative, it is considered relative to the end of the string
+// If length is negative, it is read to the left of offset in stead of the right
+// If data to be deleted is out of bounds of the cstr, out of bounds data is ignored
+// The NULL terminator is not deletable by this function.  It will always be appended to the end.
+void cdelbstr(char **heap_buffer_ptr, signed int offset, signed int length) {
+	if (length == 0 || heap_buffer_ptr == 0) {
+		return;
+	}
+	char *heap_buffer;
+	heap_buffer = *heap_buffer_ptr;
+	if (heap_buffer[0] == 0) {
+		return;
+	}
+	signed int heap_buffer_len;
+	heap_buffer_len = cstrlen(heap_buffer);
+	if (offset < 0) {
+		offset += heap_buffer_len;
+	}
+	signed int tmp;
+	signed int end;
+	end = offset + length;
+	if (length < 0) {
+		tmp = end;
+		end = offset;
+		offset = tmp;
+	}
+	if (offset < 0) {
+		offset = 0;
+	}
+	if (end >= heap_buffer_len) {
+		end = heap_buffer_len - 1;
+	}
+	if (end <= offset) {
+		return;
+	}
+	length = end - offset;
+	
+	tmp = offset + length;
+	end = offset;
+	while (tmp < heap_buffer_len) {
+		heap_buffer[end] = heap_buffer[tmp];
+		tmp++;
+		end++;
+	}
+	return;
+}
+
 // Delete content from cstr at offset offset and of length, length
 // If offset is negative, it is considered relative to the end of the string
 // If length is negative, it is read to the left of offset in stead of the right
@@ -56,6 +105,46 @@ void cdelstr(char **heap_buffer_ptr, signed int offset, signed int length) {
 	return;
 }
 
+/*
+// Insert block cstr into block cstr, but do not attempt to reallocate the memory
+// A negative offset means relative to the end of the heap_buffer
+void cinsbstr(const char *payload, struct Working_Text *working_text) {
+	if (payload == 0 || working_text == 0) {
+		return;
+	}
+	if (payload[0] == 0 || working_text->text == 0) {
+		return;
+	}
+	
+	//char *heap_buffer;
+	char *tmp_heap_buffer;
+	signed int heap_buffer_len;
+	signed int heap_content_len;
+	signed int payload_buffer_len;
+	
+	//heap_buffer = *heap_buffer_ptr;
+	heap_buffer_len = working_text->alloc_unit * working_text->current_alloc_unit_count;
+	heap_content_len = working_text->current_bytes_used; // This needs to be reworked for multi-byte charactors
+	payload_buffer_len = cstrlen(payload) - 1;
+	
+	if (offset < 0) {
+		offset += heap_buffer_len;
+	}
+	if (offset >= heap_buffer_len || offset < 0) {
+		return;
+	}
+	
+	tmp_heap_buffer = malloc((heap_buffer_len + payload_buffer_len) * sizeof(char));
+	cmemcpy(heap_buffer, tmp_heap_buffer, offset * sizeof(char));
+	cmemcpy(payload, tmp_heap_buffer + offset, payload_buffer_len * sizeof(char));
+	cmemcpy(heap_buffer + offset, tmp_heap_buffer + offset + payload_buffer_len, (heap_buffer_len - offset) * sizeof(char));
+	*heap_buffer_ptr = tmp_heap_buffer;
+	free(heap_buffer);
+	
+	return;
+}
+*/
+
 // Insert cstr into cstr
 // A negative offset means relative to the end of the heap_buffer
 void cinsstr(const char *payload, char **heap_buffer_ptr, signed int offset) {
@@ -65,38 +154,35 @@ void cinsstr(const char *payload, char **heap_buffer_ptr, signed int offset) {
 	if (payload[0] == 0) {
 		return;
 	}
+	
 	char *heap_buffer;
-	heap_buffer = *heap_buffer_ptr;
-	if (heap_buffer == 0) {
-		if (offset == 0) {
-			heap_buffer = malloc(cstrlen(payload) * sizeof(char));
-			cstrcpy(payload, heap_buffer);
-			*heap_buffer_ptr = heap_buffer;
-		}
-		return;
-	}
+	char *tmp_heap_buffer;
 	signed int heap_buffer_len;
 	signed int payload_buffer_len;
+	
+	heap_buffer = *heap_buffer_ptr;
 	heap_buffer_len = cstrlen(heap_buffer);
 	payload_buffer_len = cstrlen(payload) - 1;
+	
 	if (offset < 0) {
 		offset += heap_buffer_len;
 	}
 	if (offset >= heap_buffer_len || offset < 0) {
 		return;
 	}
-	char *tmp_heap_buffer;
+	
 	tmp_heap_buffer = malloc((heap_buffer_len + payload_buffer_len) * sizeof(char));
 	cmemcpy(heap_buffer, tmp_heap_buffer, offset * sizeof(char));
 	cmemcpy(payload, tmp_heap_buffer + offset, payload_buffer_len * sizeof(char));
 	cmemcpy(heap_buffer + offset, tmp_heap_buffer + offset + payload_buffer_len, (heap_buffer_len - offset) * sizeof(char));
 	*heap_buffer_ptr = tmp_heap_buffer;
 	free(heap_buffer);
+	
 	return;
 }
 
 // Set all bytes to the value of "value", starting at the location "to", for the length of "length"
-void cmemset(void* to, const unsigned char value, const unsigned int length){
+void cmemset(void* to, const unsigned char value, const unsigned int length) {
 	unsigned char* to_loc = to;
 	unsigned int i = 0;
 	while (i < length) {
@@ -107,13 +193,24 @@ void cmemset(void* to, const unsigned char value, const unsigned int length){
 }
 
 // Copy memory, one byte at a time, from one location to another, for a given length in bytes
-void cmemcpy(const void* from, void* to, const unsigned int length){
+// A negative length means, reverse the order bytes copied.  This is useful for shifting array positions where bytes may get clobbered if done in the other order.
+// In the case of a negative length, parameters from and to are still pointers to the start of each memory location.
+// In otherwords, if a negative length is specified, memory will be copied starting at (from + length) to (to + length) and ending at (from + 0) to (to + 0).
+void cmemcpy(const void* from, void* to, signed int length) {
 	const char* from_loc = from;
 	char* to_loc = to;
-	unsigned int i = 0;
-	while (i < length) {
+	signed int inc = 1;
+	signed int i;
+	if (length < 0) {
+		inc *= -1;
+		i = -(length + 1);
+	} else {
+		i = 0;
+	}
+	while (0 != length) {
 		to_loc[i] = from_loc[i];
-		i++;
+		length -= inc;
+		i += inc;
 	}
 	return;
 }

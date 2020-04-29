@@ -10,6 +10,9 @@ struct EL_textbox_t {
 	uint32_t border_color;
 	char *text;
 	char *def_text;
+	unsigned int alloc_unit;
+	unsigned int current_alloc_unit_count;
+	unsigned int current_bytes_used;
 	unsigned int cursor_position;
 	unsigned int cursor_selection_base_position;
 	unsigned int text_drawing_offset;

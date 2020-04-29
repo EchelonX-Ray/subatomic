@@ -2,6 +2,7 @@
 #include "./../drawing.h"
 #include "./../text.h"
 #include "./../input/mouse.h"
+#include "./../input/keyboard.h"
 #include "./../../toolbox/cstr_manip.h"
 #include <stdlib.h>
 #include <X11/cursorfont.h>
@@ -18,82 +19,70 @@ struct EL_textbox_t {
 };
 */
 
-void move_textbox_cursor(struct MTK_WinElement *element, signed int offset, unsigned int dont_move_sel_pos) {
-	if (element == 0) { // Probably unnecessary error checking / Consider removing
-		return;
-	}
-	if (element->type_spec == 0) { // Probably unnecessary error checking / Consider removing
-		return;
-	}
-	
+void adjust_textbox_display_offset(struct MTK_WinElement *element) {
+	// Does the new cursor position exist outside of the current textbox display window?
+	// If so, adjust the display offset so that the cursor is displayed in the visible textbox
 	struct EL_textbox_t *type_spec;
+	char *tmp_text;
 	unsigned int text_length;
 	unsigned int cursor_position;
-	
+	unsigned int tmp_width_cursor;
+	unsigned int tmp_width_text;
+	unsigned int tmp_max_width;
 	type_spec = element->type_spec;
-	if (type_spec->text == 0) { // Probably unnecessary error checking / Consider removing
-		return;
-	}
-	
 	text_length = cstrlen(type_spec->text);
-	cursor_position = type_spec->cursor_position + offset;
-	
-	// Check to make sure the desired cursor_position does not overflow the bounderies of the text.
-	// Because of unsigned Two's complement integer wrapping, this check will also work if offset is negative and has a greater absolute value than text_length
-	// So it is equivalent to a signed operation of ((cursor_position > text_length) && (cursor_position < 0))
-	if (cursor_position < text_length) {
-		// Move the cursor
-		type_spec->cursor_position = cursor_position;
-		if (!dont_move_sel_pos) { // Should the selection base position be moved in sync?
-			type_spec->cursor_selection_base_position = cursor_position;
+	cursor_position = type_spec->cursor_position;
+	tmp_max_width = element->_internal_computed_width;
+	if (tmp_max_width <= 4) {
+		tmp_max_width = 0;
+	} else {
+		tmp_max_width -= 4;
+	}
+	tmp_text = malloc(sizeof(char) * text_length);
+	cstrcpy(type_spec->text, tmp_text);
+	tmp_text[cursor_position] = 0;
+	tmp_width_cursor = get_text_width(tmp_text, type_spec->fontmap);
+	tmp_width_text = get_text_width(type_spec->text, type_spec->fontmap);
+	free(tmp_text);
+	if (tmp_width_text <= tmp_max_width) {
+		type_spec->text_drawing_offset = 0;
+	} else {
+		if (type_spec->text_drawing_offset + tmp_max_width > tmp_width_text) {
+			type_spec->text_drawing_offset = tmp_width_text - tmp_max_width;
 		}
-		
-		// Does the new cursor position exist outside of the current textbox display window?
-		// If so, adjust the display offset so that the cursor is displayed in the visible textbox
-		char *tmp_text;
-		unsigned int tmp_width_cursor;
-		unsigned int tmp_width_text;
-		unsigned int tmp_max_width;
-		tmp_max_width = element->_internal_computed_width;
-		if (tmp_max_width <= 4) {
-			tmp_max_width = 0;
-		} else {
-			tmp_max_width -= 4;
-		}
-		tmp_text = malloc(sizeof(char) * text_length);
-		cstrcpy(type_spec->text, tmp_text);
-		tmp_text[cursor_position] = 0;
-		tmp_width_cursor = get_text_width(tmp_text, type_spec->fontmap);
-		tmp_width_text = get_text_width(type_spec->text, type_spec->fontmap);
-		free(tmp_text);
-		if (tmp_width_text <= tmp_max_width) {
-			type_spec->text_drawing_offset = 0;
-		} else {
-			if (type_spec->text_drawing_offset + tmp_max_width > tmp_width_text) {
-				type_spec->text_drawing_offset = tmp_width_text - tmp_max_width;
+		if (tmp_width_cursor < type_spec->text_drawing_offset) {
+			if (tmp_width_cursor == 0) {
+				type_spec->text_drawing_offset = tmp_width_cursor;
+			} else {
+				type_spec->text_drawing_offset = tmp_width_cursor - 1;
 			}
-			if (tmp_width_cursor < type_spec->text_drawing_offset) {
-				if (tmp_width_cursor == 0) {
-					type_spec->text_drawing_offset = tmp_width_cursor;
-				} else {
-					type_spec->text_drawing_offset = tmp_width_cursor - 1;
-				}
-			} else if (tmp_width_cursor > type_spec->text_drawing_offset + tmp_max_width) {
-				type_spec->text_drawing_offset = tmp_width_cursor - tmp_max_width;
-			}
+		} else if (tmp_width_cursor > type_spec->text_drawing_offset + tmp_max_width) {
+			type_spec->text_drawing_offset = tmp_width_cursor - tmp_max_width;
 		}
 	}
 	return;
 }
-void delete_textbox_substr(struct MTK_WinElement *element, unsigned int pos_a, unsigned int pos_b) {
-	struct EL_textbox_t *type_spec;
-	type_spec = element->type_spec;
-	if (pos_a > pos_b) {
-		cdelstr(&(type_spec->text), pos_a, pos_b - pos_a);
-		move_textbox_cursor(element, pos_b - pos_a, 0);
-	} else {
-		cdelstr(&(type_spec->text), pos_a, pos_b - pos_a);
-		move_textbox_cursor(element, 0, 0); // Call this even though the cursor is not moving because it will adjust the display offsets if necessary
+
+void redraw_handler(unsigned int ret_redraw_required, struct MTK_WinElement *element, struct MTK_WinBase *window) {
+	if (ret_redraw_required & 0x10) {
+		adjust_textbox_display_offset(element);
+	}
+	if (ret_redraw_required & 0x20) {
+		reset_the_cursor(window, 1);
+	}
+	if (ret_redraw_required & 0x08) {
+		draw_element(window->root_element, window);
+	} else if (ret_redraw_required & 0x04) {
+		draw_element(element, window);
+	}
+	if (ret_redraw_required & 0x02) {
+		draw_bm(0, 0, window->width, window->height, window);
+	} else if (ret_redraw_required & 0x01) {
+		draw_bm(	element->_internal_computed_xoffset, \
+					element->_internal_computed_yoffset, \
+					element->_internal_computed_width, \
+					element->_internal_computed_height, \
+					window	);
 	}
 	return;
 }
@@ -294,7 +283,7 @@ unsigned int textbox_event_move(int x, int y, XEvent* event, struct MTK_WinEleme
 	}
 #endif
 	if (window->_internal_mouse_state.mouse_state[MOUSE_BTN_LEFT] == MS_DOWN) {
-		// The pointer has moved and is button-[TODO]-down, but the location could be anywhere, including outside of the window.
+		// The pointer has moved and is button-MOUSE_BTN_LEFT-down, but the location could be anywhere, including outside of the window.
 		// Use it's location to determine a new text cursor position and set it.
 		
 		// Declare local-scope variables
@@ -439,112 +428,30 @@ unsigned int textbox_event_button(unsigned int state, unsigned int button, signe
 	return redraw_required;
 }
 void textbox_event_key(int state, int keycode, XEvent* event, struct MTK_WinElement* element, struct MTK_WinBase* window) {
-	KeySym keysym;
-	KeySym keysym_num;
-	unsigned int num_mask;
-	KeySym keysym_lower;
-	KeySym keysym_upper;
-	keysym = XkbKeycodeToKeysym(window->dis, keycode, 0, event->xkey.state & ShiftMask);
-	num_mask = 0;
-	num_mask |= event->xkey.state & ShiftMask;
-	if (event->xkey.state & Mod2Mask) {
-		num_mask ^= ShiftMask;
-	}
-	keysym_num = XkbKeycodeToKeysym(window->dis, keycode, 0, num_mask);
-	char payload[2];
-	payload[1] = 0;
 	struct EL_textbox_t *textbox_type_spec_ptr;
 	textbox_type_spec_ptr = (struct EL_textbox_t*)window->focused_element->type_spec;
-	if (keysym == XK_BackSpace) {
-		// If there is a selection, delete it.  If not, Backspace
-		if (textbox_type_spec_ptr->cursor_position != textbox_type_spec_ptr->cursor_selection_base_position) {
-			delete_textbox_substr(element, textbox_type_spec_ptr->cursor_position, textbox_type_spec_ptr->cursor_selection_base_position);
-		} else {
-			cdelstr(&(textbox_type_spec_ptr->text), textbox_type_spec_ptr->cursor_position, -1);
-			move_textbox_cursor(element, -1, 0);
-		}
-		goto textbox_update_required; // GOTO to avoid repeating code for redrawing the textbox.
-	}
-	if (keysym == XK_Delete) {
-		// If there is a selection, delete it.  If not, Delete
-		if (textbox_type_spec_ptr->cursor_position != textbox_type_spec_ptr->cursor_selection_base_position) {
-			delete_textbox_substr(element, textbox_type_spec_ptr->cursor_position, textbox_type_spec_ptr->cursor_selection_base_position);
-		} else {
-			cdelstr(&(textbox_type_spec_ptr->text), textbox_type_spec_ptr->cursor_position, 1);
-			move_textbox_cursor(element, 0, 0); // Call this even though the cursor is not moving because it will adjust the display offsets if necessary
-		}
-		goto textbox_update_required; // GOTO to avoid repeating code for redrawing the textbox.
-	}
-	if (keysym == XK_Left) {
-		if (event->xkey.state & ShiftMask) {
-			move_textbox_cursor(element, -1, 1);
-		} else {
-			if (textbox_type_spec_ptr->cursor_selection_base_position != textbox_type_spec_ptr->cursor_position) {
-				if (textbox_type_spec_ptr->cursor_selection_base_position > textbox_type_spec_ptr->cursor_position) {
-					move_textbox_cursor(element, 0, 0);
-				} else {
-					move_textbox_cursor(element, textbox_type_spec_ptr->cursor_selection_base_position - textbox_type_spec_ptr->cursor_position, 0);
-				}
-			} else {
-				move_textbox_cursor(element, -1, 0);
-			}
-		}
-		goto textbox_update_required; // GOTO to avoid repeating code for redrawing the textbox.
-	}
-	if (keysym == XK_Right) {
-		if (event->xkey.state & ShiftMask) {
-			move_textbox_cursor(element, +1, 1);
-		} else {
-			if (textbox_type_spec_ptr->cursor_selection_base_position != textbox_type_spec_ptr->cursor_position) {
-				if (textbox_type_spec_ptr->cursor_selection_base_position > textbox_type_spec_ptr->cursor_position) {
-					move_textbox_cursor(element, textbox_type_spec_ptr->cursor_selection_base_position - textbox_type_spec_ptr->cursor_position, 0);
-				} else {
-					move_textbox_cursor(element, 0, 0);
-				}
-			} else {
-				move_textbox_cursor(element, +1, 0);
-			}
-		}
-		goto textbox_update_required; // GOTO to avoid repeating code for redrawing the textbox.
-	}
-	if ((event->xkey.state & LockMask) > 0) {
-		XConvertCase(keysym, &keysym_lower, &keysym_upper);
-		if ((event->xkey.state & ShiftMask) > 0) {
-			keysym = keysym_lower;
-		} else {
-			keysym = keysym_upper;
-		}
-	}
-	if (keysym >= 0x20 && keysym < 0x7F) {
-		// Correct by offset the keysym to the ascii text equivalent.  In this case, the offset is 0x0.
-		payload[0] = keysym;
-		
-		goto insert_the_text; // GOTO to avoid repeating code per each possible offset.
-	} else if((keysym_num >= 0xFFAA && keysym_num <= 0xFFB9) || keysym_num == 0xFFBD) {
-		// Correct by offset the keysym to the ascii text equivalent.  In this case, the offset is 0xFF80.
-		payload[0] = keysym_num - 0xFF80;
-		
-		insert_the_text:
-		// If there is a selection, delete it.
-		if (textbox_type_spec_ptr->cursor_selection_base_position != textbox_type_spec_ptr->cursor_position) {
-			delete_textbox_substr(element, textbox_type_spec_ptr->cursor_position, textbox_type_spec_ptr->cursor_selection_base_position);
-		}
-		// Insert the cstr "payload" into the textbox content cstr 
-		cinsstr(payload, &(textbox_type_spec_ptr->text), textbox_type_spec_ptr->cursor_position);
-		// Increment the cursor
-		move_textbox_cursor(element, +1, 0);
-		
-		textbox_update_required:
-		// Reset the cursor blink
-		reset_the_cursor(window, 1);
-		// Redraw the textbox into the buffer
-		draw_element(element, window);
-		// Redraw the buffer to the screen
-		draw_bm(	element->_internal_computed_xoffset, \
-					element->_internal_computed_yoffset, \
-					element->_internal_computed_width, \
-					element->_internal_computed_height, \
-					window	);
-	}
+	
+	unsigned int ret_redraw_required;
+	ret_redraw_required = 0;
+	struct Working_Text working_text;
+	
+	working_text.text = textbox_type_spec_ptr->text;
+	working_text.current_alloc_unit_count = textbox_type_spec_ptr->current_alloc_unit_count;
+	working_text.current_bytes_used = textbox_type_spec_ptr->current_bytes_used;
+	working_text.cursor_position = textbox_type_spec_ptr->cursor_position;
+	working_text.cursor_base_sel_position = textbox_type_spec_ptr->cursor_selection_base_position;
+	
+	working_text.alloc_unit = textbox_type_spec_ptr->alloc_unit;
+	working_text.ml = 0;
+	
+	ret_redraw_required = keytoaction(&working_text, keycode, event->xkey.state, window);
+	
+	textbox_type_spec_ptr->text = working_text.text;
+	textbox_type_spec_ptr->current_alloc_unit_count = working_text.current_alloc_unit_count;
+	textbox_type_spec_ptr->current_bytes_used = working_text.current_bytes_used;
+	textbox_type_spec_ptr->cursor_position = working_text.cursor_position;
+	textbox_type_spec_ptr->cursor_selection_base_position = working_text.cursor_base_sel_position;
+	
+	redraw_handler(ret_redraw_required, element, window);
 	return;
 }

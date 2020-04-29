@@ -2,18 +2,37 @@
 
 #include <poll.h>
 #include <unistd.h>
+#include <fontconfig/fontconfig.h>
+#include "./../lib/toolbox/cstr_manip.h"
 
 #include "./win_setup/main_win.c"
 
-#ifndef TEST_FONT_DIR
-#define TEST_FONT_DIR "/usr/share/fonts/dejavu/DejaVuSansMono.ttf"
+#ifndef TEST_FONT_FILE
+#define TEST_FONT_FILE "/usr/share/fonts/dejavu/DejaVuSansMono.ttf"
 #endif
 
-int main(int argc, char *argv[]) {
+#ifndef TEST_FONT_FAMILY
+#define TEST_FONT_FAMILY "DejaVu Serif"
+#endif
+
+int main(int argc, char *argv[]) {	
 	// Setup the font definitions
 	struct MTK_WinFontPack font_pack;
-	printf("%s\n", TEST_FONT_DIR);
-	setup_font(TEST_FONT_DIR, 25, &font_pack);
+	if (MTK_FONT_STYLE_COUNT <= 0) {
+		return -2;
+	}
+#ifndef DEVEL_STRIP_FONTLIST
+	printf("Trace_Font Family: %s\n", TEST_FONT_FAMILY);
+	load_font_family(TEST_FONT_FAMILY, &font_pack);
+#else
+	printf("Trace_Font File: %s\n", TEST_FONT_FILE);
+	font_pack.files = calloc(sizeof(char*), MTK_FONT_STYLE_COUNT);
+	if (MTK_FONT_STYLE_NORMAL < MTK_FONT_STYLE_COUNT) {
+		font_pack.files[MTK_FONT_STYLE_NORMAL] = calloc(sizeof(char), cstrlen(TEST_FONT_FILE));
+		cstrcpy(TEST_FONT_FILE, font_pack.files[MTK_FONT_STYLE_NORMAL]);
+	}
+#endif
+	setup_font(25, &font_pack);
 	
 	// Setup the window element definitions
 	struct MTK_WinElement *root_cont = calloc(1, sizeof(struct MTK_WinElement));

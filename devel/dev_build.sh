@@ -1,14 +1,27 @@
 #!/bin/bash
 
-TEST_FONT_DIR="/usr/share/fonts/dejavu/DejaVuSansMono.ttf"
+# -----------------------------------------------------------------------------
+# START: Configure The Build Parameters
 
-TUPLE="x86_64-pc-linux-gnu"
+TEST_FONT_FILE="/usr/share/fonts/dejavu/DejaVuSansMono.ttf"
+TEST_FONT_FAMILY="DejaVu Serif"
 
-CFLAGS="-Wall -std=c99 -pipe -O2 -flto -march=native -g"
+LINK_STATICLLY="NO"
+
+CFLAGS="-Wall -std=c99 -pipe -O2 -flto -march=native -g $(pkg-config --cflags x11)"
 #CFLAGS="$CFLAGS -DDEVEL_STRIP_MCURSOR"
+#CFLAGS="$CFLAGS -DDEVEL_STRIP_FONTLIST"
 
 LDFLAGS=""
 
+PKGCONFIG_LINK="--libs --cflags"
+
+TUPLE="x86_64-pc-linux-gnu"
+
+#   END: Configure The Build Parameters
+# -----------------------------------------------------------------------------
+
+# Get the location of this script in filesystem
 get_script_dir() {
      SOURCE="${BASH_SOURCE[0]}"
      # While $SOURCE is a symlink, resolve it
@@ -30,7 +43,16 @@ ln -s "/dev/shm/devel/subatomic/dev_build/" "./build"
 mkdir -p "./build/core"
 mkdir -p "./build/lib/toolbox"
 mkdir -p "./build/lib/wincomp"
+mkdir -p "./build/lib/wincomp/input"
 mkdir -p "./build/lib/wincomp/elements"
+
+FLDFLAGS=""
+if [ "$LINK_STATICLLY" == "YES" ]; then
+  CFLAGS="-static $CFLAGS"
+  LDFLAGS="-static $LDFLAGS"
+  FLDFLAGS="-lm -ldl"
+  PKGCONFIG_LINK="--static $PKGCONFIG_LINK"
+fi
 
 # If the variable TUPLE is unset or empty, default to not using a prefix
 CC=""
@@ -45,9 +67,15 @@ fi
 
 # Complile the core program
 echo "Compile: subatomic.c"
-$CC -c "./../src/core/subatomic.c" -o "./build/core/subatomic.obj" $CFLAGS -DTEST_FONT_DIR="\"$TEST_FONT_DIR\"" &
+$CC -c "./../src/core/subatomic.c" -o "./build/core/subatomic.obj" $CFLAGS -DTEST_FONT_FILE="\"$TEST_FONT_FILE\"" -DTEST_FONT_FAMILY="\"$TEST_FONT_FAMILY\"" &
 echo "Compile: core/events.c"
 $CC -c "./../src/core/events.c" -o "./build/core/events.obj" $CFLAGS &
+
+# Compile the window input processing files
+echo "Compile: input/keyboard.c"
+$CC -c "./../src/lib/wincomp/input/keyboard.c" -o "./build/lib/wincomp/input/keyboard.obj" $CFLAGS &
+echo "Compile: input/mouse.c"
+$CC -c "./../src/lib/wincomp/input/mouse.c" -o "./build/lib/wincomp/input/mouse.obj" $CFLAGS &
 
 # Compile the window elements
 echo "Compile: elements/button.c"
@@ -83,7 +111,7 @@ $CC -c "./../src/lib/wincomp/text.c" -o "./build/lib/wincomp/text.obj" $CFLAGS &
 echo "Compile: wincomp/elements.c"
 $CC -c "./../src/lib/wincomp/elements.c" -o "./build/lib/wincomp/elements.obj" $CFLAGS &
 echo "Compile: wincomp/font.c"
-$CC -c "./../src/lib/wincomp/font.c" -o "./build/lib/wincomp/font.obj" $(pkg-config --cflags freetype2) $CFLAGS &
+$CC -c "./../src/lib/wincomp/font.c" -o "./build/lib/wincomp/font.obj" $(pkg-config --cflags freetype2) $(pkg-config --cflags fontconfig) $CFLAGS &
 
 # Wait for compilation to finish
 echo "Waiting for compilation to finish."
@@ -114,17 +142,20 @@ $LD $LDFLAGS -r -o "./build/subatomic_p3.obj" \
   "./build/lib/wincomp/events.obj" \
   "./build/lib/wincomp/drawing.obj" \
   "./build/lib/wincomp/text.obj" \
-  "./build/lib/wincomp/font.obj" &
+  "./build/lib/wincomp/font.obj" \
+  "./build/lib/wincomp/input/keyboard.obj" \
+  "./build/lib/wincomp/input/mouse.obj" &
 
 wait
-echo "Link: Against X11 + FreeType + pThread and Produce Finished Executable ./subatomic.out"
+echo "Link: Against X11 + FreeType + FontConfig + pThread and Produce Finished Executable ./subatomic.out"
 $CC $CFLAGS $LDFLAGS -o "./subatomic.out" \
   "./build/subatomic_p1.obj" \
   "./build/subatomic_p2.obj" \
   "./build/subatomic_p3.obj" \
-  $(pkg-config --libs x11) \
-  $(pkg-config --libs --cflags freetype2) \
-  -lpthread
+  -lpthread $FLDFLAGS \
+  $(pkg-config $PKGCONFIG_LINK freetype2) \
+  $(pkg-config $PKGCONFIG_LINK fontconfig) \
+  $(pkg-config $PKGCONFIG_LINK x11)
 
 echo "Deleting Build Directory"
 rm -rf "/dev/shm/devel"

@@ -4,10 +4,11 @@
 
 #include <stdint.h>
 
+void cdelbstr(char **heap_buffer_ptr, signed int offset, signed int length);
 void cdelstr(char **heap_buffer_ptr, signed int offset, signed int length);
 void cinsstr(const char *payload, char **heap_buffer_ptr, signed int offset);
-void cmemset(void* to, const unsigned char value, const unsigned int length);
-void cmemcpy(const void* from, void* to, const unsigned int length);
+void cmemset(void* to, const unsigned char value, unsigned int length);
+void cmemcpy(const void* from, void* to, const signed int length);
 unsigned int cstrlen(const char *src);
 unsigned int cstrcpy(const char *src, char *dest);
 unsigned int cstrcmp(const char *string1, const char *string2);
