@@ -1,25 +1,39 @@
 #!/bin/bash
 
-# -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------
 # START: Configure The Build Parameters
 
+# Manually set a font file to use.  This is not used if DEVEL_STRIP_FONTLIST is not defined
 TEST_FONT_FILE="/usr/share/fonts/dejavu/DejaVuSansMono.ttf"
+# The font family to scan for
 TEST_FONT_FAMILY="DejaVu Serif"
 
+# Link the project staticlly?  Only a value of exactly "YES" (All capitalized), will be 
+# accepted as a directive to build staticlly.  Otherwise, the script defaults to building 
+# with dynamic linking.  
+# This feature is currently broken.  Don't use it.  Leave it set to "NO"
 LINK_STATICLLY="NO"
 
-CFLAGS="-Wall -std=c99 -pipe -O2 -flto -march=native -g $(pkg-config --cflags x11)"
+# Set the CFLAGS
+CFLAGS="-Wall -std=c99 -pipe -O2 -flto -march=native -g $CFLAGS"
+# This is used to disable cursor changing for debuging since it seems to be slightly 
+# broken in Xlib
 #CFLAGS="$CFLAGS -DDEVEL_STRIP_MCURSOR"
+# This is used to disable usage of the FontConfig library since it also seems to be
+# slightly broken.  If you use this, make sure that TEST_FONT_FILE is set correctly.
 #CFLAGS="$CFLAGS -DDEVEL_STRIP_FONTLIST"
 
-LDFLAGS=""
+# Set the LDFLAGS
+LDFLAGS="$LDFLAGS"
 
+# Set the FLAGS for pkgconfig at link-time
 PKGCONFIG_LINK="--libs --cflags"
 
+# Set the CC and LD tuple
 TUPLE="x86_64-pc-linux-gnu"
 
 #   END: Configure The Build Parameters
-# -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------
 
 # Get the location of this script in filesystem
 get_script_dir() {
@@ -45,6 +59,8 @@ mkdir -p "./build/lib/toolbox"
 mkdir -p "./build/lib/wincomp"
 mkdir -p "./build/lib/wincomp/input"
 mkdir -p "./build/lib/wincomp/elements"
+
+CFLAGS="$(pkg-config --cflags x11) $CFLAGS"
 
 FLDFLAGS=""
 if [ "$LINK_STATICLLY" == "YES" ]; then

@@ -1,1 +1,0 @@
-﻿All persons contributiung to this project must surrender all copyright ownership to me of the material they contribute and they must certify and affirm that they do have the authority to make such a surrender for the material.  This policy is in place to avoid fragmentaion of copyright ownership for the project.
