@@ -15,7 +15,7 @@
 #define TEST_FONT_FAMILY "DejaVu Serif"
 #endif
 
-int main(int argc, char *argv[]) {	
+int main(int argc, char *argv[]) {
 	// Setup the font definitions
 	struct MTK_WinFontPack font_pack;
 	if (MTK_FONT_STYLE_COUNT <= 0) {
