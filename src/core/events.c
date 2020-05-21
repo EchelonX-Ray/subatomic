@@ -11,7 +11,9 @@ void exposure_event(XEvent* event, struct MTK_WinBase* window){
 		window->bitmap = calloc(window->width * window->height, sizeof(uint32_t));
 		window->_internal_mouse_state.pixel_element_map = calloc(window->width * window->height, sizeof(struct MTK_WinElement**));
 		compute_element_internals(window);
-		window->loop_running = 1;
+		if (window->loop_running == 2) {
+			window->loop_running = 1;
+		}
 	}
 	draw_element(window->root_element, window);
 	draw_bm(0, 0, window->width, window->height, window);

@@ -1,8 +1,16 @@
 #include "./elements.h"
+#include "./text.h"
 #include "./../toolbox/cstr_manip.h"
 #include <stdlib.h>
 #include <unistd.h>
 
+// Start a seperate thread to recompute the element offsets and redraw the window.
+// This is done in a seperate thread to stop the window from flickering when being resized.
+void recompute_for_exposure(struct MTK_WinBase *window) {
+	// TODO
+	
+	return;
+}
 // Start the cursor blinking thread
 void start_the_cursor(struct MTK_WinBase *window, unsigned int blink_state) {
 	window->cursor_blink = blink_state;
@@ -576,6 +584,46 @@ void parse_chain_y(struct MTK_WinEl_Chain *chain, unsigned int parent_height) {
 }
 
 void recur_compute_element_internals(struct MTK_WinElement *element) {
+	// Is this a type of the menu system?
+	if       (element->type == EL_MENUBAR) {
+		unsigned int i;
+		i = 0;
+		signed int menubaritem_width;
+		signed int menubar_workingwidth;
+		struct EL_menuitem_t *type_spec;
+		menubar_workingwidth = 0;
+		while (i < element->child_count) {
+			if (element->children[i]->type == EL_MENUITEM) {
+				if (menubar_workingwidth >= element->_internal_computed_width) {
+					element->children[i]->_internal_computed_width = 0;
+					element->children[i]->_internal_computed_height = 0;
+					element->children[i]->_internal_computed_xoffset = 0;
+					element->children[i]->_internal_computed_yoffset = 0;
+				} else {
+					type_spec = element->children[i]->type_spec;
+					menubaritem_width = type_spec->left_padding + get_text_width(type_spec->text, type_spec->fontmap) + type_spec->right_padding;
+					element->children[i]->_internal_computed_height = element->_internal_computed_height;
+					element->children[i]->_internal_computed_yoffset = element->_internal_computed_yoffset;
+					if (menubaritem_width + menubar_workingwidth < element->_internal_computed_width) {
+						element->children[i]->_internal_computed_width = menubaritem_width;
+						element->children[i]->_internal_computed_xoffset = element->_internal_computed_xoffset + menubar_workingwidth;
+					} else {
+						menubaritem_width = element->_internal_computed_width - menubar_workingwidth;
+						element->children[i]->_internal_computed_width = menubaritem_width;
+						element->children[i]->_internal_computed_xoffset = element->_internal_computed_xoffset + menubar_workingwidth;
+					}
+					menubar_workingwidth += menubaritem_width;
+				}
+			} else {
+				fprintf(stderr, "Invalid Element Tree:\n");
+				fprintf(stderr, "Non-'Menuitem' element type is a child of element type 'Menubar'\n");
+				exit(1);
+			}
+			i++;
+		}
+		return;
+	}
+	
 	struct MTK_WinEl_ChainList x_chainlist;
 	struct MTK_WinEl_ChainList y_chainlist;
 	unsigned int i;
@@ -642,6 +690,15 @@ void recur_compute_element_internals(struct MTK_WinElement *element) {
 	
 	return;
 }
+void recur_compute_menuitem_internals(struct MTK_WinElement *element) {
+	return;
+}
+void recur_compute_menubaritem_internals(struct MTK_WinElement *element) {
+	return;
+}
+void recur_compute_menu_internals(struct MTK_WinElement *element) {
+	return;
+}
 
 void compute_element_internals(struct MTK_WinBase *window) {
 	struct MTK_WinEl_ChainList x_chainlist;
@@ -664,6 +721,45 @@ void compute_element_internals(struct MTK_WinBase *window) {
 		window->root_element->_internal_computed_height = window->height;
 	} else {
 		window->root_element->_internal_computed_height = window->root_element->height;
+	}
+	
+	// Is this a type of the menu system?
+	if       (window->root_element->type == EL_MENUBAR) {
+		i = 0;
+		signed int menubaritem_width;
+		signed int menubar_workingwidth;
+		struct EL_menuitem_t *type_spec;
+		menubar_workingwidth = 0;
+		while (i < window->root_element->child_count) {
+			if (window->root_element->children[i]->type == EL_MENUITEM) {
+				if (menubar_workingwidth >= window->root_element->_internal_computed_width) {
+					window->root_element->children[i]->_internal_computed_width = 0;
+					window->root_element->children[i]->_internal_computed_height = 0;
+					window->root_element->children[i]->_internal_computed_xoffset = 0;
+					window->root_element->children[i]->_internal_computed_yoffset = 0;
+				} else {
+					type_spec = window->root_element->children[i]->type_spec;
+					menubaritem_width = type_spec->left_padding + get_text_width(type_spec->text, type_spec->fontmap) + type_spec->right_padding;
+					window->root_element->children[i]->_internal_computed_height = window->root_element->_internal_computed_height;
+					window->root_element->children[i]->_internal_computed_yoffset = window->root_element->_internal_computed_yoffset;
+					if (menubaritem_width + menubar_workingwidth < window->root_element->_internal_computed_width) {
+						window->root_element->children[i]->_internal_computed_width = menubaritem_width;
+						window->root_element->children[i]->_internal_computed_xoffset = window->root_element->_internal_computed_xoffset + menubar_workingwidth;
+					} else {
+						menubaritem_width = window->root_element->_internal_computed_width - menubar_workingwidth;
+						window->root_element->children[i]->_internal_computed_width = menubaritem_width;
+						window->root_element->children[i]->_internal_computed_xoffset = window->root_element->_internal_computed_xoffset + menubar_workingwidth;
+					}
+					menubar_workingwidth += menubaritem_width;
+				}
+			} else {
+				fprintf(stderr, "Invalid Element Tree:\n");
+				fprintf(stderr, "Non-'Menuitem' element type is a child of element type 'Menubar'\n");
+				exit(1);
+			}
+			i++;
+		}
+		return;
 	}
 	
 	// Stage #1: Find parsing order.  Highest to lowest.  This priority is stored in [chain].independence_level
@@ -753,6 +849,13 @@ void draw_element(struct MTK_WinElement *element, struct MTK_WinBase *window) {
 	}
 	if (element->type == EL_TEXTBOX) {
 		draw_textbox(element, window);
+	}
+	
+	if (element->type == EL_MENUBAR) {
+		draw_menubar(element, window);
+	}
+	if (element->type == EL_MENUITEM) {
+		draw_menuitem(element, window);
 	}
 	
 	unsigned int i = 0;

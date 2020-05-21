@@ -22,6 +22,7 @@ struct EL_textbox_t {
 void adjust_textbox_display_offset(struct MTK_WinElement *element) {
 	// Does the new cursor position exist outside of the current textbox display window?
 	// If so, adjust the display offset so that the cursor is displayed in the visible textbox
+	
 	struct EL_textbox_t *type_spec;
 	char *tmp_text;
 	unsigned int text_length;

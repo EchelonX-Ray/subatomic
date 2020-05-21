@@ -41,8 +41,8 @@ int main(int argc, char *argv[]) {
 	// Setup the global base window struct
 	struct MTK_WinBase window; // Declare the window struct
 	window_struct_zero(&window); // Zero the window struct values
-	// Set the window values we need
-	window.title = "Sub-Atomic Editor";
+	
+	// Setup the window events
 	window.events = mtk_gem(KeyEvent) | mtk_gem(MouseBtnEvent) | mtk_gem(MouseMoveEvent) | mtk_gem(LeaveEvent) | mtk_gem(ExposeEvent);
 	window.event_handles[KeyEvent] = (void*)&key_event;
 	window.event_handles[MouseBtnEvent] = (void*)&button_event;
@@ -50,12 +50,17 @@ int main(int argc, char *argv[]) {
 	window.event_handles[LeaveEvent] = (void*)&leave_window_event;
 	window.event_handles[ExposeEvent] = (void*)&exposure_event;
 	window.event_handles[CloseEvent] = (void*)&before_closing;
+	
+	// Set the window values
+	window.title = "Sub-Atomic Editor";
 	window.width = 640;
 	window.height = 480;
 	window.root_element = root_cont;
 	window.ignore_key_repeat = 0; // Ignore Key Repeat?
-	window.focused_element = root_cont->children[1];
-	window_struct_init(&window); // Initialize the window struct values
+	window.focused_element = root_cont->children[0];
+	
+	// Initialize the window struct values.  This depends on the values already being set.
+	window_struct_init(&window);
 	
 	// Compute the element geometry
 	// This must be done before any drawing
@@ -72,7 +77,11 @@ int main(int argc, char *argv[]) {
 	if (pipe(pipefd_pair) != 0) {
 		return -1;
 	}
-	pthread_t threads[1];
+	int pipefd_pair2[2];
+	if (pipe(pipefd_pair2) != 0) {
+		return -1;
+	}
+	pthread_t threads[2];
 	pthread_mutex_t thread_lock[1];
 	window.thread.thread = threads + 0; // Set pointer to thread
 	window.thread.lock = thread_lock + 0; // Set pointer to mutex
@@ -131,6 +140,8 @@ int main(int argc, char *argv[]) {
 	stop_the_cursor(&window, 0);
 	
 	// Close the opened file descriptors
+	close(pipefd_pair2[0]);
+	close(pipefd_pair2[1]);
 	close(pipefd_pair[0]);
 	close(pipefd_pair[1]);
 	

@@ -75,16 +75,155 @@ void setup_main_win_elements(struct MTK_WinElement **element, struct MTK_WinFont
 	root_cont->anchor_count = 0; // Initialize the element's anchor count to NULL.  This is unnecessary because this value will be updated below.
 	
 	// Setup Root Container Elements
-	struct MTK_WinElement **root_cont_child_list = calloc(2, sizeof(struct MTK_WinElement*)); // Allocate the memory for the array of pointers to child elements.
-	root_cont->child_count = 2; // Set how many children this element has.
+	root_cont->child_count = 3; // Set how many children this element has.
+	struct MTK_WinElement **root_cont_child_list = calloc(root_cont->child_count, sizeof(struct MTK_WinElement*)); // Allocate the memory for the array of pointers to child elements.
 	root_cont->children = root_cont_child_list; // Set the pointer to the array.
-	struct MTK_WinElement *textbox = calloc(1, sizeof(struct MTK_WinElement)); // Allocate the memory for the Textbox element.
+	//struct MTK_WinElement *root_cont_children = calloc(root_cont->child_count, sizeof(struct MTK_WinElement));
+	struct MTK_WinElement *textbox = calloc(1, sizeof(struct MTK_WinElement));
 	textbox->type_spec = calloc(1, sizeof(struct EL_textbox_t)); // Allocate the memory for the Textbox type specific element.
-	struct MTK_WinElement *button = calloc(1, sizeof(struct MTK_WinElement)); // Allocate the memory for the Button element.
+	struct MTK_WinElement *button = calloc(1, sizeof(struct MTK_WinElement));
 	button->type_spec = calloc(1, sizeof(struct EL_button_t)); // Allocate the memory for the Button type specific element.
+	struct MTK_WinElement *menubar = calloc(1, sizeof(struct MTK_WinElement));
+	menubar->type_spec = calloc(1, sizeof(struct EL_menubar_t)); // Allocate the memory for the Menubar type specific element.
 	// Setup the array of children
-	root_cont_child_list[0] = button;
-	root_cont_child_list[1] = textbox;
+	root_cont_child_list[0] = textbox;
+	root_cont_child_list[1] = button;
+	root_cont_child_list[2] = menubar;
+	
+	/*
+	The type specific struct definition of Menubar elements.
+	Defined in: src/lib/wincomp/menubar/menubar.h
+	
+	struct EL_menubar_t {
+		unsigned int item_count;
+		struct EL_menuitem_t *menu_item;
+		uint32_t bg_color;
+	};
+	
+	The type specific struct definition of Menu Item elements.
+	Defined in: src/lib/wincomp/menubar/menu.h
+	
+	struct EL_menuitem_t {
+		unsigned int type;
+		unsigned int is_selected;
+		unsigned int mouse_state;
+		struct EL_menu_t *menu;
+		void* callback;
+		char *text;
+		struct MTK_WinFontMap *fontmap;
+		unsigned int left_padding;
+		unsigned int right_padding;
+		uint32_t bg_color;
+		uint32_t text_color;
+		uint32_t hover_bg_color;
+		uint32_t hover_text_color;
+		uint32_t down_bg_color;
+		uint32_t down_text_color;
+	};
+	
+	The type specific struct definition of Menu elements.
+	Defined in: src/lib/wincomp/menubar/menu.h
+	
+	struct EL_menu_t {
+		unsigned int item_count;
+		struct EL_menuitem_t *menu_item;
+	};
+	*/
+	
+	// Setup the Menubar type specific information
+	struct EL_menubar_t *menubar__type_spec;
+	menubar__type_spec = menubar->type_spec;
+	menubar__type_spec->bg_color = 0x0000FF00;
+	// Setup the Menubar general information
+	menubar->id = 3; // Set the element ID
+	menubar->width = -1; // Set the width to "scale-to-fit"
+	menubar->height = 40; // Set the height to 50 pixels
+	menubar->mouse_state = EL_MS_NORMAL; // Initialize the mouse state to "Normal"
+	menubar->type = EL_MENUBAR; // Set the type
+	menubar->parent = root_cont; // Set the pointer to the parent element
+	menubar->children = 0; // This element has no children.  Set the array pointer to NULL.
+	menubar->child_count = 2;
+	menubar->children = calloc(menubar->child_count, sizeof(struct MTK_WinElement*));
+	menubar->children[0] = calloc(1, sizeof(struct MTK_WinElement));
+	menubar->children[1] = calloc(1, sizeof(struct MTK_WinElement));
+	menubar->children[0]->id = 4;
+	menubar->children[0]->height = -1;
+	menubar->children[0]->width = 50;
+	menubar->children[0]->mouse_state = EL_MS_NORMAL;
+	menubar->children[0]->type = EL_MENUITEM;
+	menubar->children[0]->parent = menubar;
+	menubar->children[0]->children = 0;
+	menubar->children[0]->child_count = 0;
+	menubar->children[0]->type_spec = calloc(1, sizeof(struct EL_menuitem_t));
+	menubar->children[1]->id = 5;
+	menubar->children[1]->height = -1;
+	menubar->children[1]->width = 50;
+	menubar->children[1]->mouse_state = EL_MS_NORMAL;
+	menubar->children[1]->type = EL_MENUITEM;
+	menubar->children[1]->parent = menubar;
+	menubar->children[1]->children = 0;
+	menubar->children[1]->child_count = 0;
+	menubar->children[1]->type_spec = calloc(1, sizeof(struct EL_menuitem_t));
+	/*
+	menubar__type_spec->item_count = 2;
+	menubar__type_spec->menu_item = calloc(menubar__type_spec->item_count * sizeof(struct EL_menuitem_t));
+	*/
+	struct EL_menuitem_t *menuitem_typespec;
+	menuitem_typespec = menubar->children[0]->type_spec;
+	menuitem_typespec->type = MenuT_Stub;
+	menuitem_typespec->is_selected = 0;
+	//menuitem_typespec->mouse_state = EL_MS_NORMAL;
+	menuitem_typespec->menu = 0;
+	menuitem_typespec->callback = 0;
+	menuitem_typespec->text = "Menu Item 1";
+	menuitem_typespec->fontmap = &(font_pack->font_style[0]);
+	menuitem_typespec->left_padding = 15;
+	menuitem_typespec->right_padding = 15;
+	menuitem_typespec->bg_color = 0x00FF0000;
+	menuitem_typespec->text_color = 0x00FFFFFF;
+	menuitem_typespec->hover_bg_color = 0x000000FF;
+	menuitem_typespec->hover_text_color = 0x00FFFFFF;
+	menuitem_typespec->down_bg_color = 0x000000FF;
+	menuitem_typespec->down_text_color = 0x00000000;
+	menuitem_typespec = menubar->children[1]->type_spec;
+	menuitem_typespec->type = MenuT_Stub;
+	menuitem_typespec->is_selected = 0;
+	//menuitem_typespec->mouse_state = EL_MS_NORMAL;
+	menuitem_typespec->menu = 0;
+	menuitem_typespec->callback = 0;
+	menuitem_typespec->text = "Menu Item 2";
+	menuitem_typespec->fontmap = &(font_pack->font_style[0]);
+	menuitem_typespec->left_padding = 15;
+	menuitem_typespec->right_padding = 15;
+	menuitem_typespec->bg_color = 0x00FF0000;
+	menuitem_typespec->text_color = 0x00FFFFFF;
+	menuitem_typespec->hover_bg_color = 0x000000FF;
+	menuitem_typespec->hover_text_color = 0x00FFFFFF;
+	menuitem_typespec->down_bg_color = 0x000000FF;
+	menuitem_typespec->down_text_color = 0x00000000;
+	// Setup the Menubar anchors
+	menubar->anchor_count = 1; // This element has 1 anchor.
+	struct MTK_WinElAnchor *menubar_anchors = calloc(menubar->anchor_count, sizeof(struct MTK_WinElAnchor)); // Allocate the memory for the anchor array
+	menubar_anchors[0].x_offset = 5; // Set the anchor position to 0 pixels on the x coordinate.
+	menubar_anchors[0].y_offset = 5; // Set the anchor position to 100 pixels on the y coordinate.
+	menubar_anchors[0].relative_to = root_cont; // Set the element that this anchor is relative to
+	// Set the anchor point to have the following traits: 
+	//  - Applies to the X-AXIS
+	//  - Applies to the Y-AXIS
+	//  - Is relative to the left side of this element
+	//  - Is relative to the left side of the element this element is relative to
+	//  - Is relative to the top side of this element
+	//  - Is relative to the top side of the element this element is relative to
+	menubar_anchors[0].flags = EL_AC_XAXIS | EL_AC_YAXIS | EL_AC_RELATIVE_LEFT | EL_AC_RELATIVE_TOP | EL_AC_ELEMENT_LEFT | EL_AC_ELEMENT_TOP;
+	//menubar_anchors[1].x_offset = 5; // Set the anchor position to 0 pixels on the x coordinate.
+	//menubar_anchors[1].relative_to = root_cont; // Set the element that this anchor is relative to
+	// Set the anchor point to have the following traits: 
+	//  - Applies to the X-AXIS
+	//  - Is relative to the right side of this element
+	//  - Is relative to the right side of the element this element is relative to
+	//menubar_anchors[1].flags = EL_AC_XAXIS | EL_AC_RELATIVE_RIGHT | EL_AC_ELEMENT_RIGHT;
+	// Set the pointer to the anchor array to the Textbox element
+	menubar->anchors = menubar_anchors;
 	
 	/*
 	The type specific struct definition of Textbox elements.
@@ -139,7 +278,7 @@ void setup_main_win_elements(struct MTK_WinElement **element, struct MTK_WinFont
 	textbox->anchor_count = 1; // This element has 1 anchor.
 	struct MTK_WinElAnchor *textbox_anchors = calloc(textbox->anchor_count, sizeof(struct MTK_WinElAnchor)); // Allocate the memory for the anchor array
 	textbox_anchors[0].x_offset = 0; // Set the anchor position to 0 pixels on the x coordinate.
-	textbox_anchors[0].y_offset = 100; // Set the anchor position to 100 pixels on the y coordinate.
+	textbox_anchors[0].y_offset = 180; // Set the anchor position to 100 pixels on the y coordinate.
 	textbox_anchors[0].relative_to = root_cont; // Set the element that this anchor is relative to
 	// Set the anchor point to have the following traits: 
 	//  - Applies to the X-AXIS
@@ -194,7 +333,7 @@ void setup_main_win_elements(struct MTK_WinElement **element, struct MTK_WinFont
 	button->anchor_count = 1; // This element has 1 anchor.
 	struct MTK_WinElAnchor *button_anchors = calloc(1, sizeof(struct MTK_WinElAnchor)); // Allocate the memory for the anchor array
 	button_anchors[0].x_offset = 15; // Set the anchor position to 15 pixels on the x coordinate.
-	button_anchors[0].y_offset = 5; // Set the anchor position to 5 pixels on the y coordinate.
+	button_anchors[0].y_offset = 100; // Set the anchor position to 5 pixels on the y coordinate.
 	button_anchors[0].relative_to = root_cont; // Set the element that this anchor is relative to
 	// Set the anchor point to have the following traits: 
 	//  - Applies to the X-AXIS
@@ -220,7 +359,7 @@ void free_element_tree(struct MTK_WinElement *root_cont) {
 	
 	// Child parsing
 	unsigned int i;
-	if (root_cont->children != 0) { // Check for null pointer
+	if (root_cont->children) { // Check for null pointer
 		i = 0;
 		while (root_cont->child_count > 0) { // Iterate through children
 			// Recur to parse the branch of the tree
@@ -228,6 +367,11 @@ void free_element_tree(struct MTK_WinElement *root_cont) {
 			root_cont->child_count--; // Remove the freed child from count
 			i++; // Increment the index
 		}
+		/*
+		if (root_cont->children[0]) {
+			free(root_cont->children[0]);
+		}
+		*/
 		free(root_cont->children); // Free the array of pointers
 	}
 	
@@ -250,6 +394,21 @@ void free_element_tree(struct MTK_WinElement *root_cont) {
 				free(textbox_t->text);
 			}
 		}
+		/*	This section is currently unneeded, but I'm leaving it 
+			here to make building it out easier later if it becomes 
+			needed again
+		
+		if (root_cont->type == EL_MENUITEM) { // This is a textbox
+			// Get the type specific values
+			struct EL_menuitem_t *menuitem_t;
+			menuitem_t = (struct EL_menuitem_t*)root_cont->type_spec;
+			
+			// Free the text value if non-null.
+			if (menuitem_t->text != 0) {
+				free(menuitem_t->text);
+			}
+		}
+		*/
 		
 		// Free the type specific struct
 		free(root_cont->type_spec);

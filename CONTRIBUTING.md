@@ -23,7 +23,7 @@ patch files.  In this case, I will credit and reference you by E-mail
 address and Name, in the git commit containing your changes.  Again,  
 should I decide to accept your changes in the first place, I will  
 contact you back directly via E-mail to confirm your surrender of all  
-copyright ownership.  Reguardless of the way you submit contributions,  
+copyright ownership.  Regardless of the way you submit contributions,  
 I will not accept contributions which fail to verify transfer of  
 copyright ownership to me.  Contributions which meet this standard may  
 still be refused for any reason.  It is also possible, only a part  

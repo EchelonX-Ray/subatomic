@@ -89,7 +89,7 @@ unsigned int button_event_move(int x, int y, XEvent* event, struct MTK_WinElemen
 #endif
 		if (element->mouse_state == EL_MS_NORMAL) {
 			element->mouse_state = EL_MS_HOVER;
-			draw_button(element, window);
+			draw_element(element, window);
 			redraw_required |= 0x1;
 		}
 	}
@@ -100,7 +100,7 @@ unsigned int button_event_button(int state, unsigned int button, int x, int y, X
 	redraw_required = 0;
 	if        (state == MS_DOWN) {
 		element->mouse_state = EL_MS_DOWN;
-		draw_button(element, window);
+		draw_element(element, window);
 	} else if (state == MS_UP) {
 		// In the event of a mouse-up event, we need to double check if the mouse is over the element.
 		// This function is called on mouse-up for the element to which the previous mouse-down event occured, 

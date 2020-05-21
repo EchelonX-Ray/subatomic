@@ -7,15 +7,14 @@
 struct MTK_WinMouseStateTracking {
 	struct MTK_WinElement **pixel_element_map;
 	struct MTK_WinElement *previous_mouse_element;
-	signed int previous_mouse_x;
-	signed int previous_mouse_y;
-	signed int mouse_down_x;
-	signed int mouse_down_y;
-	unsigned int mouse_state;
+	unsigned int mouse_moved_while_button_down_array[MOUSE_BUTTONS];
+	unsigned int mouse_state_array[MOUSE_BUTTONS];
+	unsigned int *mouse_moved_while_button_down;
+	unsigned int *mouse_state;
 };
 */
 
-void window_struct_zero(struct MTK_WinBase *window){
+void window_struct_zero(struct MTK_WinBase *window) {
 	unsigned int i = 0;
 	
 	window->loop_running = 2;
@@ -41,18 +40,18 @@ void window_struct_zero(struct MTK_WinBase *window){
 		window->event_handles[i] = 0;
 		i++;
 	}
-		
+	
 	return;
 }
 
-void window_struct_init(struct MTK_WinBase *window){	
+void window_struct_init(struct MTK_WinBase *window) {	
 	window->bitmap = calloc(window->width * window->height, sizeof(uint32_t));
 	window->_internal_mouse_state.pixel_element_map = calloc(window->width * window->height, sizeof(struct MTK_WinElement**));
 	
 	return;
 }
 
-void create_window(struct MTK_WinBase *vals){
+void create_window(struct MTK_WinBase *vals) {
 	int screen;
 	//Window win;
 	//GC gc;

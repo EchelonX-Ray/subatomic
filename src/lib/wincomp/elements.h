@@ -9,6 +9,8 @@
 #include "./elements/radiobutton.h"
 #include "./elements/tab.h"
 #include "./elements/textbox.h"
+#include "./menubar/menubar.h"
+#include "./menubar/menu.h"
 
 #define EL_BUTTON 1
 #define EL_CHECKBOX 2
@@ -18,6 +20,10 @@
 #define EL_RADIOBUTTON 6
 #define EL_TAB 7
 #define EL_TEXTBOX 8
+// Menubar
+#define EL_MENUBAR 9
+#define EL_MENU 10
+#define EL_MENUITEM 11
 
 #define EL_MS_NORMAL 0
 #define EL_MS_HOVER 1
@@ -41,7 +47,7 @@ struct MTK_WinElement {
 	unsigned int mouse_state;
 	unsigned int type;
 	void* type_spec;
-	void* parent;
+	struct MTK_WinElement *parent;
 	struct MTK_WinElAnchor *anchors;
 	unsigned int anchor_count;
 	struct MTK_WinElement **children;

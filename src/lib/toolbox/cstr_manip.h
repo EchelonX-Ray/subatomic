@@ -4,6 +4,7 @@
 
 #include <stdint.h>
 
+char* cstrdup(const char *str);
 void cdelbstr(char **heap_buffer_ptr, signed int offset, signed int length);
 void cdelstr(char **heap_buffer_ptr, signed int offset, signed int length);
 void cinsstr(const char *payload, char **heap_buffer_ptr, signed int offset);

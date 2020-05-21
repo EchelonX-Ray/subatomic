@@ -1,6 +1,28 @@
 #include "./cstr_manip.h"
 #include <stdlib.h>
 
+// Duplicate a cstr onto the heap and return the address to it
+char* cstrdup(const char *str) {
+	if (str == 0) {
+		return 0;
+	}
+	unsigned int i;
+	i = 0;
+	while (str[i] != 0) {
+		i++;
+	}
+	i++;
+	char *dupstr;
+	dupstr = malloc(i * sizeof(char));
+	i--;
+	dupstr[i] = 0;
+	while (i > 0) {
+		i--;
+		dupstr[i] = str[i];
+	}
+	return dupstr;
+}
+
 // Delete content from cstr at offset offset and of length, length.
 // Memory will not be resized by this function.
 // If offset is negative, it is considered relative to the end of the string

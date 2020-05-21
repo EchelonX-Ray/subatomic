@@ -14,14 +14,17 @@ TEST_FONT_FAMILY="DejaVu Serif"
 # This feature is currently broken.  Don't use it.  Leave it set to "NO"
 LINK_STATICLLY="NO"
 
+# Zero the CFLAGS
+#CFLAGS=""
+#LDFLAGS=""
 # Set the CFLAGS
 CFLAGS="-Wall -std=c99 -pipe -O2 -flto -march=native -g $CFLAGS"
 # This is used to disable cursor changing for debuging since it seems to be slightly 
 # broken in Xlib
-#CFLAGS="$CFLAGS -DDEVEL_STRIP_MCURSOR"
+CFLAGS="$CFLAGS -DDEVEL_STRIP_MCURSOR"
 # This is used to disable usage of the FontConfig library since it also seems to be
 # slightly broken.  If you use this, make sure that TEST_FONT_FILE is set correctly.
-#CFLAGS="$CFLAGS -DDEVEL_STRIP_FONTLIST"
+CFLAGS="$CFLAGS -DDEVEL_STRIP_FONTLIST"
 
 # Set the LDFLAGS
 LDFLAGS="$LDFLAGS"
@@ -59,6 +62,7 @@ mkdir -p "./build/lib/toolbox"
 mkdir -p "./build/lib/wincomp"
 mkdir -p "./build/lib/wincomp/input"
 mkdir -p "./build/lib/wincomp/elements"
+mkdir -p "./build/lib/wincomp/menubar"
 
 CFLAGS="$(pkg-config --cflags x11) $CFLAGS"
 
@@ -92,6 +96,12 @@ echo "Compile: input/keyboard.c"
 $CC -c "./../src/lib/wincomp/input/keyboard.c" -o "./build/lib/wincomp/input/keyboard.obj" $CFLAGS &
 echo "Compile: input/mouse.c"
 $CC -c "./../src/lib/wincomp/input/mouse.c" -o "./build/lib/wincomp/input/mouse.obj" $CFLAGS &
+
+# Compile the window menubar files
+echo "Compile: menubar/menubar.c"
+$CC -c "./../src/lib/wincomp/menubar/menubar.c" -o "./build/lib/wincomp/menubar/menubar.obj" $CFLAGS &
+echo "Compile: menubar/menu.c"
+$CC -c "./../src/lib/wincomp/menubar/menu.c" -o "./build/lib/wincomp/menubar/menu.obj" $CFLAGS &
 
 # Compile the window elements
 echo "Compile: elements/button.c"
@@ -160,7 +170,9 @@ $LD $LDFLAGS -r -o "./build/subatomic_p3.obj" \
   "./build/lib/wincomp/text.obj" \
   "./build/lib/wincomp/font.obj" \
   "./build/lib/wincomp/input/keyboard.obj" \
-  "./build/lib/wincomp/input/mouse.obj" &
+  "./build/lib/wincomp/input/mouse.obj" \
+  "./build/lib/wincomp/menubar/menubar.obj" \
+  "./build/lib/wincomp/menubar/menu.obj" &
 
 wait
 echo "Link: Against X11 + FreeType + FontConfig + pThread and Produce Finished Executable ./subatomic.out"

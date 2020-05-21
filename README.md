@@ -21,8 +21,8 @@ The script is located at “/devel/dev_build.sh”.
 Upon the successful completion of the script, the program  
 binary will be placed at: /devel/subatomic.out  
   
-1) cd devel # Move the correct directory  
+1) cd devel &#35; Move the correct directory  
 2) &#35; In the build script file ./dev_build.sh, there is a configuration section  
    &#35; This can be used to configure the build.  Adjust the parameters as needed.  
-2) ./dev_build.sh # Run the build script  
-3) ./subatomic.out # Run the built program  
+3) ./dev_build.sh &#35; Run the build script  
+4) ./subatomic.out &#35; Run the built program  

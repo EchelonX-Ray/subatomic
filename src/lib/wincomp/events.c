@@ -62,6 +62,10 @@ void element_mousebutton_event(int state, unsigned int button, int x, int y, XEv
 			element_redraw_required |= button_event_button(state, button, x, y, event, element, window);
 		} else if (element->type == EL_TEXTBOX) {
 			element_redraw_required |= textbox_event_button(state, button, x, y, event, element, window);
+		} else if (element->type == EL_MENUBAR) {
+			element_redraw_required |= menubar_event_button(state, button, x, y, event, element, window);
+		} else if (element->type == EL_MENUITEM) {
+			element_redraw_required |= menuitem_event_button(state, button, x, y, event, element, window);
 		}
 	}
 	if        (state == MS_DOWN) {
@@ -132,6 +136,10 @@ void element_mousemotion_event(int x, int y, XEvent* event, struct MTK_WinBase* 
 		element_redraw_required |= button_event_move(x, y, event, element, window);
 	} else if (element->type == EL_TEXTBOX) {
 		element_redraw_required |= textbox_event_move(x, y, event, element, window);
+	} else if (element->type == EL_MENUBAR) {
+		element_redraw_required |= menubar_event_move(x, y, event, element, window);
+	} else if (element->type == EL_MENUITEM) {
+		element_redraw_required |= menuitem_event_move(x, y, event, element, window);
 	}
 	if (previous_mouse_element != element) {
 		window->_internal_mouse_state.previous_mouse_element = element;
@@ -142,6 +150,10 @@ void element_mousemotion_event(int x, int y, XEvent* event, struct MTK_WinBase* 
 				prev_element_redraw_required |= button_leave(x, y, event, previous_mouse_element, window);
 			} else if (previous_mouse_element->type == EL_TEXTBOX) {
 				prev_element_redraw_required |= textbox_leave(x, y, event, previous_mouse_element, window);
+			} else if (previous_mouse_element->type == EL_MENUBAR) {
+				prev_element_redraw_required |= menubar_leave(x, y, event, previous_mouse_element, window);
+			} else if (previous_mouse_element->type == EL_MENUITEM) {
+				prev_element_redraw_required |= menuitem_leave(x, y, event, previous_mouse_element, window);
 			}
 			
 			if ((element_redraw_required & 0x2) == 0) {
